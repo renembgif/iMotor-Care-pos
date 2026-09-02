@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#2b3a42">
 <title>iMotor Care — Sistema de gestión</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   /* Paleta: mundo del lubricentro. Grafito estructural, ambar aceite de motor, acero/teal secundario. */
@@ -356,6 +357,7 @@ button{ cursor:pointer; }
     <a href="#dashboard" class="nav-item active" data-view="dashboard"><span class="ic">&#9679;</span> Inicio</a>
     <a href="#venta" class="nav-item" data-view="venta"><span class="ic">&#43;</span> Nueva venta</a>
     <a href="#cotizaciones" class="nav-item" data-view="cotizaciones"><span class="ic">&#128196;</span> Cotizaciones</a>
+    <a href="#clientes" class="nav-item" data-view="clientes"><span class="ic">&#128100;</span> Clientes y vehículos</a>
     <a href="#ventas" class="nav-item" data-view="ventas"><span class="ic">&#128179;</span> Ventas</a>
     <a href="#inventario" class="nav-item" data-view="inventario"><span class="ic">&#9636;</span> Inventario</a>
     <a href="#compras" class="nav-item" data-view="compras"><span class="ic">&#8595;</span> Compras y gastos</a>
@@ -431,11 +433,49 @@ button{ cursor:pointer; }
             <div class="tot-row"><span>Subtotal</span><span id="cot-subtotal">S/ 0.00</span></div>
             <div class="tot-row"><span>IGV incluido</span><span id="cot-igv">S/ 0.00</span></div>
             <div class="tot-row grand"><span>Total</span><span id="cot-total">S/ 0.00</span></div>
-            <button class="confirm-btn" id="cot-generar" disabled>Generar cotización (PDF)</button>
+            <button class="confirm-btn" id="cot-generar" disabled>Descargar PDF</button>
           </div>
         </div>
       </div>
       <div class="empty-note" style="margin:14px 0 8px;font-size:12px;">Las cotizaciones no descuentan stock.</div>
+      <div class="panel"><div class="panel-head">Historial de cotizaciones</div><div class="panel-body" style="padding:0;" id="cot-historial"><div class="empty-note">Cargando…</div></div></div>
+    </section>
+
+    <!-- ---------- CLIENTES Y VEHÍCULOS ---------- -->
+    <section class="view" id="view-clientes">
+      <div class="topline"><h2>Clientes y vehículos</h2></div>
+      <div class="panel">
+        <div class="panel-head">Registrar servicio</div>
+        <div class="panel-body" style="padding:16px 18px;">
+          <div class="cliente-row">
+            <input type="text" id="cl-placa" placeholder="Placa" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+            <input type="date" id="cl-fecha" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+          </div>
+          <div class="cliente-row"><input type="text" id="cl-nombre" placeholder="Nombre del cliente" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></div>
+          <div class="cliente-row">
+            <input type="text" id="cl-aceite" placeholder="Aceite que utiliza" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+            <input type="text" id="cl-filtroaceite" placeholder="Filtro de aceite" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+          </div>
+          <div class="cliente-row">
+            <input type="text" id="cl-filtroaire" placeholder="Filtro de aire" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+            <input type="text" id="cl-filtropetroleo" placeholder="Filtro de petróleo" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+          </div>
+          <div class="cliente-row"><input type="text" id="cl-adicionales" placeholder="Adicionales" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></div>
+          <div class="cliente-row">
+            <input type="number" id="cl-km" placeholder="Km actual" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+            <input type="number" id="cl-proxcambio" placeholder="Próx. cambio (Km)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+          </div>
+          <button class="btn-primary" id="cl-guardar" style="width:auto;padding:10px 20px;">Guardar</button>
+          <div class="sale-msg" id="cl-msg"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">Buscar por placa</div>
+        <div class="panel-body" style="padding:16px 18px;">
+          <input type="text" id="cl-buscar-placa" placeholder="Escribe una placa…" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+        </div>
+        <div class="panel-body" style="padding:0;" id="cl-historial"><div class="empty-note">Escribe una placa arriba para ver su historial.</div></div>
+      </div>
     </section>
 
     <!-- ---------- VENTAS (historial) ---------- -->
@@ -519,6 +559,7 @@ button{ cursor:pointer; }
 </nav>
 <div id="mas-menu" class="mas-menu">
   <button class="mas-item" data-view="ventas">&#128179; Ventas</button>
+  <button class="mas-item" data-view="clientes">&#128100; Clientes y vehículos</button>
   <button class="mas-item" data-view="compras">&#8595; Compras y gastos</button>
   <button class="mas-item" data-view="resumen">&#8801; Resumen SUNAT</button>
 </div>
@@ -605,6 +646,8 @@ function goView(name) {
   if (name === 'ventas') cargarVentasHistorial();
   if (name === 'compras') cargarHistorialCompras();
   if (name === 'resumen') cargarResumen();
+  if (name === 'cotizaciones') cargarHistorialCotizaciones();
+  if (name === 'clientes') { /* nada que precargar */ }
 }
 document.querySelectorAll('.nav-item, .bn-item:not(.bn-mas-btn)').forEach(el => el.addEventListener('click', e => { e.preventDefault(); goView(el.dataset.view); }));
 const masMenu = document.getElementById('mas-menu');
@@ -713,19 +756,125 @@ function renderCotCarrito(){
   document.getElementById('cot-total').textContent=fmt(total);
   document.getElementById('cot-generar').disabled=cotCart.length===0;
 }
-document.getElementById('cot-generar').addEventListener('click', () => {
+document.getElementById('cot-generar').addEventListener('click', async () => {
   cotCounter++; localStorage.setItem('imotor_cot_counter', cotCounter);
+  const numero = String(cotCounter).padStart(6,'0');
   const total = cotCart.reduce((s,c)=>s+c.precioVenta*c.cantidad,0);
-  document.getElementById('cot-doc-num').textContent = 'N° ' + String(cotCounter).padStart(6,'0');
-  document.getElementById('cot-doc-fecha').textContent = new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'});
-  document.getElementById('cot-doc-cliente').textContent = document.getElementById('cot-cliente').value.trim() || 'Cliente genérico';
-  document.getElementById('cot-doc-items').innerHTML = cotCart.map(c=>`<tr><td>${esc(c.nombre)}</td><td class="num">${c.cantidad}</td><td class="num">${fmt(c.precioVenta)}</td><td class="num">${fmt(c.precioVenta*c.cantidad)}</td></tr>`).join('');
-  document.getElementById('cot-doc-subtotal').textContent = fmt(total);
-  document.getElementById('cot-doc-igv').textContent = fmt(total-total/1.18);
-  document.getElementById('cot-doc-total').textContent = fmt(total);
-  document.getElementById('cot-doc-overlay').classList.add('show');
+  const base = total/1.18, igv = total-base;
+  const cliente = document.getElementById('cot-cliente').value.trim() || 'Cliente genérico';
+  const fechaStr = new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'});
+
+  generarPDF(numero, fechaStr, cliente, cotCart, total, igv);
+
+  // Guardar en el historial (Google Sheets)
+  try {
+    await api(null,{},'POST',{ accion:'cotizacion', numero, cliente, items: cotCart.map(c=>({codigo:c.codigo,nombre:c.nombre,cantidad:c.cantidad,precio:c.precioVenta})), total });
+  } catch(e) { /* si falla el guardado, el PDF ya se descargó igual */ }
+  cargarHistorialCotizaciones();
 });
 document.getElementById('btn-nueva-cot').addEventListener('click', () => { cotCart=[]; renderCotCarrito(); document.getElementById('cot-cliente').value=''; });
+
+function generarPDF(numero, fechaStr, cliente, items, total, igv) {
+  const { jsPDF } = window.jspdf;
+  const pageW = 595;
+  const rowH = 22, headerH = 100, infoH = 55, clienteH = 42, tableHeadH = 24, totalsH = 95, footerH = 65, margin = 30;
+  const tableTop = headerH + infoH + clienteH;
+  const tableBottom = tableTop + tableHeadH + items.length * rowH;
+  const pageH = Math.max(400, tableBottom + totalsH + footerH + margin);
+
+  const doc = new jsPDF({ unit: 'pt', format: [pageW, pageH] });
+  const CYAN = [0, 216, 239];
+
+  // Header negro
+  doc.setFillColor(0,0,0); doc.rect(0,0,pageW,headerH,'F');
+  try { doc.addImage('data:image/jpeg;base64,'+LOGO_B64, 'JPEG', 30, 24, 120, 52); } catch(e) {}
+  doc.setTextColor(...CYAN); doc.setFontSize(9); doc.setFont(undefined,'bold');
+  doc.text('COTIZACIÓN', pageW-30, 32, {align:'right'});
+  doc.setTextColor(255,255,255); doc.setFontSize(17);
+  doc.text('N° ' + numero, pageW-30, 52, {align:'right'});
+  doc.setFontSize(9); doc.setFont(undefined,'normal'); doc.setTextColor(190,190,190);
+  doc.text(fechaStr, pageW-30, 67, {align:'right'});
+
+  // Barra info negocio
+  doc.setFillColor(242,253,255); doc.rect(0,headerH,pageW,infoH,'F');
+  doc.setDrawColor(...CYAN); doc.setLineWidth(1.5); doc.line(0,headerH+infoH,pageW,headerH+infoH);
+  doc.setTextColor(20,20,20); doc.setFontSize(9.5); doc.setFont(undefined,'bold');
+  doc.text('iMotor Care', 30, headerH+18);
+  doc.setFont(undefined,'normal'); doc.setTextColor(80,80,80);
+  doc.text('— Lubricentro / Cuidado Automotriz', 78, headerH+18);
+  doc.text('RUC/DNI: 1074446262  ·  Tel: 922145441', 30, headerH+32);
+  doc.text('Av. Carretera Central Km. 11 Mz. A Lt2 U.C 10780, Ate, Lima', 30, headerH+46);
+
+  // Cliente
+  let y = headerH+infoH+18;
+  doc.setTextColor(...CYAN); doc.setFontSize(8.5); doc.setFont(undefined,'bold');
+  doc.text('CLIENTE', 30, y);
+  doc.setTextColor(20,20,20); doc.setFontSize(12.5);
+  doc.text(cliente, 30, y+16);
+
+  // Tabla
+  const tTop = headerH+infoH+clienteH;
+  doc.setFillColor(0,0,0); doc.rect(30, tTop, pageW-60, tableHeadH, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.setFont(undefined,'bold');
+  doc.text('PRODUCTO', 38, tTop+16);
+  doc.text('CANT.', pageW-215, tTop+16, {align:'right'});
+  doc.text('P.UNIT', pageW-125, tTop+16, {align:'right'});
+  doc.text('SUBTOTAL', pageW-38, tTop+16, {align:'right'});
+
+  let ry = tTop+tableHeadH;
+  doc.setFont(undefined,'normal'); doc.setTextColor(20,20,20); doc.setFontSize(9.5);
+  items.forEach((it,i) => {
+    doc.setDrawColor(230,230,230); doc.line(30, ry+rowH, pageW-30, ry+rowH);
+    const nombre = it.nombre.length > 48 ? it.nombre.slice(0,46)+'…' : it.nombre;
+    doc.text(nombre, 38, ry+15);
+    doc.text(String(it.cantidad), pageW-215, ry+15, {align:'right'});
+    doc.text('S/ '+it.precioVenta.toFixed(2), pageW-125, ry+15, {align:'right'});
+    doc.text('S/ '+(it.precioVenta*it.cantidad).toFixed(2), pageW-38, ry+15, {align:'right'});
+    ry += rowH;
+  });
+  doc.setLineWidth(1.5); doc.setDrawColor(0,0,0); doc.line(30, ry, pageW-30, ry);
+
+  // Totales
+  let ty = ry+22;
+  doc.setFontSize(9.5); doc.setTextColor(90,90,90);
+  doc.text('Subtotal', pageW-215, ty); doc.text('S/ '+total.toFixed(2), pageW-38, ty, {align:'right'});
+  ty += 16;
+  doc.text('IGV incluido', pageW-215, ty); doc.text('S/ '+igv.toFixed(2), pageW-38, ty, {align:'right'});
+  ty += 20;
+  doc.setDrawColor(0,0,0); doc.setLineWidth(1.5); doc.line(pageW-235, ty-12, pageW-30, ty-12);
+  doc.setFontSize(15); doc.setFont(undefined,'bold'); doc.setTextColor(0,0,0);
+  doc.text('TOTAL', pageW-215, ty+8);
+  doc.setFillColor(0,0,0); doc.rect(pageW-118, ty-8, 88, 20, 'F');
+  doc.setTextColor(...CYAN);
+  doc.text('S/ '+total.toFixed(2), pageW-38, ty+7, {align:'right'});
+
+  // Pie
+  let fy = ty+38;
+  doc.setDrawColor(200,200,200); doc.setLineWidth(0.5);
+  for(let x=30;x<pageW-30;x+=6){ doc.line(x,fy,x+3,fy); }
+  fy += 18;
+  doc.setFontSize(8.5); doc.setTextColor(0,37,43); doc.setDrawColor(...CYAN);
+  doc.roundedRect(30, fy-11, 40, 16, 3, 3); doc.text('Yape', 50, fy, {align:'center'});
+  doc.roundedRect(76, fy-11, 78, 16, 3, 3); doc.text('Transferencia', 115, fy, {align:'center'});
+  fy += 24;
+  doc.setFont(undefined,'bold'); doc.setTextColor(20,20,20); doc.setFontSize(9);
+  doc.text('Esta cotización tiene una validez de 7 días desde su emisión. Precios sujetos a stock disponible.', 30, fy, {maxWidth: pageW-60});
+
+  doc.save('Cotizacion_' + numero + '.pdf');
+}
+
+async function cargarHistorialCotizaciones(){
+  const cont = document.getElementById('cot-historial');
+  try {
+    const data = await api('cotizaciones');
+    if (!data.ok) throw new Error();
+    cont.innerHTML = data.cotizaciones.length ? data.cotizaciones.slice(0,15).map(c => `
+      <div class="venta-row"><div><div class="who">#${esc(c.numero)} — ${esc(c.cliente)}</div><div class="when">${new Date(c.fecha).toLocaleDateString('es-PE')}</div></div><div class="amt">${fmt(c.total)}</div></div>
+    `).join('') : '<div class="empty-note">Sin cotizaciones guardadas aún.</div>';
+  } catch(e) {
+    cont.innerHTML = '<div class="empty-note">No se pudo cargar el historial (¿ya actualizaste el Apps Script?).</div>';
+  }
+}
 
 // ---------------- VENTAS (historial) ----------------
 async function cargarVentasHistorial(){
@@ -818,6 +967,53 @@ async function cargarResumen(){
   document.getElementById('r-igvc').textContent=fmt(r.igvCompras);
   document.getElementById('r-ganancia').textContent=fmt(r.ganancia);
 }
+
+// ---------------- CLIENTES Y VEHÍCULOS ----------------
+document.getElementById('cl-fecha').value = new Date().toISOString().slice(0,10);
+document.getElementById('cl-guardar').addEventListener('click', async () => {
+  const msg = document.getElementById('cl-msg');
+  const placa = document.getElementById('cl-placa').value.trim();
+  const nombre = document.getElementById('cl-nombre').value.trim();
+  if (!placa || !nombre) { msg.textContent='Falta la placa o el nombre'; msg.className='sale-msg err'; return; }
+  const body = {
+    placa, nombre,
+    fecha: document.getElementById('cl-fecha').value,
+    aceite: document.getElementById('cl-aceite').value,
+    filtroAceite: document.getElementById('cl-filtroaceite').value,
+    filtroAire: document.getElementById('cl-filtroaire').value,
+    filtroPetroleo: document.getElementById('cl-filtropetroleo').value,
+    adicionales: document.getElementById('cl-adicionales').value,
+    km: document.getElementById('cl-km').value,
+    proxCambio: document.getElementById('cl-proxcambio').value,
+  };
+  try {
+    const d = await api(null,{},'POST',{accion:'cliente', ...body});
+    if (!d.ok) throw new Error(d.error || 'Error al guardar');
+    msg.textContent='✓ Guardado correctamente'; msg.className='sale-msg ok';
+    ['cl-placa','cl-nombre','cl-aceite','cl-filtroaceite','cl-filtroaire','cl-filtropetroleo','cl-adicionales','cl-km','cl-proxcambio'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('cl-fecha').value = new Date().toISOString().slice(0,10);
+  } catch(err) {
+    msg.textContent = '✗ ' + err.message + ' (¿ya actualizaste el Apps Script?)'; msg.className='sale-msg err';
+  }
+});
+let clBuscarTimeout;
+document.getElementById('cl-buscar-placa').addEventListener('input', (e) => {
+  clearTimeout(clBuscarTimeout);
+  const placa = e.target.value.trim();
+  const cont = document.getElementById('cl-historial');
+  if (!placa) { cont.innerHTML = '<div class="empty-note">Escribe una placa arriba para ver su historial.</div>'; return; }
+  clBuscarTimeout = setTimeout(async () => {
+    try {
+      const data = await api('clientes', { placa });
+      if (!data.ok) throw new Error();
+      cont.innerHTML = data.registros.length ? data.registros.map(r => `
+        <div class="venta-row"><div><div class="who">${esc(r.nombre)} — ${esc(r.placa)}</div><div class="when">${r.fecha} · Km: ${r.km||'—'} · Próx: ${r.proxCambio||'—'}</div></div></div>
+      `).join('') : '<div class="empty-note">Sin historial para esa placa.</div>';
+    } catch(e) {
+      cont.innerHTML = '<div class="empty-note">No se pudo cargar (¿ya actualizaste el Apps Script?).</div>';
+    }
+  }, 400);
+});
 
 renderCarrito(); renderCotCarrito();
 cargarProductos().then(cargarDashboard);
