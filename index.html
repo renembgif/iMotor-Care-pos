@@ -1066,89 +1066,157 @@ document.getElementById('btn-nueva-cot').addEventListener('click', () => { cotCa
 
 function generarPDF(numero, fechaStr, cliente, items, total, igv) {
   const { jsPDF } = window.jspdf;
-  const pageW = 595;
-  const rowH = 22, headerH = 100, infoH = 55, clienteH = 42, tableHeadH = 24, totalsH = 95, footerH = 65, margin = 30;
+  const pageW = 595, margin = 30;
+  const NAVY = [8, 18, 24], INK = [15, 22, 25], GRAY = [110, 118, 122];
+  const JADE = [0, 150, 120], JADE_BRIGHT = [0, 217, 163], CYAN = [56, 226, 255], WHITE = [255, 255, 255];
+  const colCantR = pageW - 220, colUnitR = pageW - 140, colSubR = pageW - 38;
+  const prodX = 38, prodMaxW = (colCantR - 24) - prodX;
+
+  // --- Paso 1: medir con una hoja temporal, para que ningún nombre largo descuadre la tabla ---
+  const meas = new jsPDF({ unit: 'pt' });
+  meas.setFont(undefined, 'normal'); meas.setFontSize(9.5);
+  const filas = items.map(it => {
+    const lineas = meas.splitTextToSize(it.nombre, prodMaxW);
+    return { it, lineas, h: Math.max(24, lineas.length * 12 + 12) };
+  });
+  const alturaFilas = filas.reduce((s, f) => s + f.h, 0);
+
+  const headerH = 148, infoH = 76, clienteH = 68, tableHeadH = 26, totalsH = 108, footerH = 90;
   const tableTop = headerH + infoH + clienteH;
-  const tableBottom = tableTop + tableHeadH + items.length * rowH;
-  const pageH = Math.max(400, tableBottom + totalsH + footerH + margin);
+  const tableBottom = tableTop + tableHeadH + alturaFilas;
+  const pageH = Math.max(500, tableBottom + totalsH + footerH + margin);
 
   const doc = new jsPDF({ unit: 'pt', format: [pageW, pageH] });
-  const CYAN = [0, 216, 239];
 
-  // Header negro
-  doc.setFillColor(0,0,0); doc.rect(0,0,pageW,headerH,'F');
-  try { doc.addImage('data:image/jpeg;base64,'+LOGO_B64, 'JPEG', 26, 9, 148, 83); } catch(e) {}
-  doc.setTextColor(...CYAN); doc.setFontSize(10); doc.setFont(undefined,'bold');
-  doc.text('COTIZACIÓN', pageW-30, 30, {align:'right'});
-  doc.setTextColor(255,255,255); doc.setFontSize(30); doc.setFont(undefined,'bold');
-  doc.text(numero, pageW-30, 62, {align:'right'});
-  doc.setFontSize(9.5); doc.setFont(undefined,'normal'); doc.setTextColor(190,190,190);
-  doc.text(fechaStr, pageW-30, 80, {align:'right'});
+  // Franjas diagonales tipo isotipo, en la esquina del encabezado
+  function chevron(x, y, w, h, skew, color) {
+    doc.setFillColor(...color);
+    doc.triangle(x, y, x + w, y, x + w - skew, y + h, 'F');
+    doc.triangle(x, y, x + w - skew, y + h, x - skew, y + h, 'F');
+  }
 
-  // Barra info negocio
-  doc.setFillColor(242,253,255); doc.rect(0,headerH,pageW,infoH,'F');
-  doc.setDrawColor(...CYAN); doc.setLineWidth(1.5); doc.line(0,headerH+infoH,pageW,headerH+infoH);
-  doc.setTextColor(20,20,20); doc.setFontSize(9.5); doc.setFont(undefined,'bold');
-  doc.text('iMotor Care', 30, headerH+18);
-  doc.setFont(undefined,'normal'); doc.setTextColor(80,80,80);
-  doc.text('— Lubricentro / Cuidado Automotriz', 78, headerH+18);
-  doc.text('RUC/DNI: 1074446262  ·  Tel: 922145441', 30, headerH+32);
-  doc.text('Av. Carretera Central Km. 11 Mz. A Lt2 U.C 10780, Ate, Lima', 30, headerH+46);
+  // Íconos lineales simples (ubicación, teléfono, documento, cliente)
+  function iconPin(x, y, s, color) {
+    doc.setFillColor(...color);
+    doc.circle(x, y - s * 0.12, s * 0.42, 'F');
+    doc.triangle(x - s * 0.3, y, x + s * 0.3, y, x, y + s * 0.55, 'F');
+    doc.setFillColor(255, 255, 255); doc.circle(x, y - s * 0.12, s * 0.16, 'F');
+  }
+  function iconPhone(x, y, s, color) {
+    doc.setFillColor(...color);
+    doc.roundedRect(x - s * 0.28, y - s * 0.4, s * 0.56, s * 0.8, s * 0.18, s * 0.18, 'F');
+    doc.setFillColor(255, 255, 255); doc.rect(x - s * 0.18, y - s * 0.24, s * 0.36, s * 0.42, 'F');
+  }
+  function iconDoc(x, y, s, color) {
+    doc.setDrawColor(...color); doc.setLineWidth(1.2);
+    doc.roundedRect(x - s * 0.32, y - s * 0.42, s * 0.64, s * 0.84, 2, 2, 'S');
+    doc.line(x - s * 0.16, y - s * 0.1, x + s * 0.16, y - s * 0.1);
+    doc.line(x - s * 0.16, y + s * 0.08, x + s * 0.16, y + s * 0.08);
+    doc.line(x - s * 0.16, y + s * 0.26, x + s * 0.02, y + s * 0.26);
+  }
+  function iconPerson(x, y, s, color) {
+    doc.setFillColor(...color);
+    doc.circle(x, y - s * 0.26, s * 0.24, 'F');
+    doc.roundedRect(x - s * 0.38, y + s * 0.02, s * 0.76, s * 0.5, s * 0.2, s * 0.2, 'F');
+  }
 
-  // Cliente
-  let y = headerH+infoH+18;
-  doc.setTextColor(...CYAN); doc.setFontSize(8.5); doc.setFont(undefined,'bold');
-  doc.text('CLIENTE', 30, y);
-  doc.setTextColor(20,20,20); doc.setFontSize(12.5);
-  doc.text(cliente, 30, y+16);
+  // ---------- Encabezado (azul noche) ----------
+  doc.setFillColor(...NAVY); doc.rect(0, 0, pageW, headerH, 'F');
+  chevron(pageW - 118, 6, 34, 26, 14, [15, 40, 42]);
+  chevron(pageW - 78, 6, 30, 26, 14, [0, 70, 66]);
+  chevron(pageW - 42, 6, 26, 26, 14, [0, 110, 96]);
 
-  // Tabla
-  const tTop = headerH+infoH+clienteH;
-  doc.setFillColor(0,0,0); doc.rect(30, tTop, pageW-60, tableHeadH, 'F');
-  doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.setFont(undefined,'bold');
-  doc.text('PRODUCTO', 38, tTop+16);
-  doc.text('CANT.', pageW-215, tTop+16, {align:'right'});
-  doc.text('P.UNIT', pageW-125, tTop+16, {align:'right'});
-  doc.text('SUBTOTAL', pageW-38, tTop+16, {align:'right'});
+  try { doc.addImage('data:image/png;base64,' + WEB_LOGO_B64, 'PNG', 26, 32, 185, 104); } catch (e) {}
 
-  let ry = tTop+tableHeadH;
-  doc.setFont(undefined,'normal'); doc.setTextColor(20,20,20); doc.setFontSize(9.5);
-  items.forEach((it,i) => {
-    doc.setDrawColor(230,230,230); doc.line(30, ry+rowH, pageW-30, ry+rowH);
-    const nombre = it.nombre.length > 48 ? it.nombre.slice(0,46)+'…' : it.nombre;
-    doc.text(nombre, 38, ry+15);
-    doc.text(String(it.cantidad), pageW-215, ry+15, {align:'right'});
-    doc.text('S/ '+it.precioVenta.toFixed(2), pageW-125, ry+15, {align:'right'});
-    doc.text('S/ '+(it.precioVenta*it.cantidad).toFixed(2), pageW-38, ry+15, {align:'right'});
-    ry += rowH;
+  doc.setDrawColor(0, 120, 105); doc.setLineWidth(1); doc.line(pageW - 190, 30, pageW - 190, headerH - 26);
+  doc.setTextColor(...JADE_BRIGHT); doc.setFontSize(11); doc.setFont(undefined, 'bold');
+  doc.text('COTIZACIÓN', pageW - 30, 46, { align: 'right' });
+  doc.setTextColor(...WHITE); doc.setFontSize(28); doc.setFont(undefined, 'bold');
+  doc.text('N.° ' + String(numero).replace(/^N\.?\s*°?\s*/i, ''), pageW - 30, 76, { align: 'right' });
+  doc.setFontSize(9.5); doc.setFont(undefined, 'normal'); doc.setTextColor(190, 205, 202);
+  doc.text(fechaStr, pageW - 30, 96, { align: 'right' });
+
+  // ---------- Barra de datos del negocio ----------
+  let iy = headerH + 24;
+  doc.setTextColor(...INK); doc.setFontSize(9.5); doc.setFont(undefined, 'normal');
+  iconPin(prodX + 5, iy - 4, 13, JADE);
+  doc.text('Av. Carretera Central Km. 11 Mz. A Lt2 U.C 10780, Ate, Lima', prodX + 20, iy);
+  iy += 17;
+  iconPhone(prodX + 5, iy - 4, 12, JADE);
+  doc.text('Tel: 922 145 441', prodX + 20, iy);
+  iy += 17;
+  iconDoc(prodX + 5, iy - 4, 13, JADE);
+  doc.text('RUC: 1074446362', prodX + 20, iy);
+  doc.setDrawColor(220, 224, 222); doc.setLineWidth(1);
+  doc.line(margin, headerH + infoH, pageW - margin, headerH + infoH);
+
+  // ---------- Cliente ----------
+  let cy = headerH + infoH + 14;
+  doc.setFillColor(244, 250, 249); doc.roundedRect(margin, cy, pageW - margin * 2, 44, 8, 8, 'F');
+  iconPerson(prodX + 11, cy + 22, 26, JADE);
+  doc.setTextColor(...JADE); doc.setFontSize(8.5); doc.setFont(undefined, 'bold');
+  doc.text('CLIENTE', prodX + 32, cy + 18);
+  doc.setTextColor(...INK); doc.setFontSize(12.5); doc.setFont(undefined, 'normal');
+  doc.text(cliente, prodX + 32, cy + 34);
+
+  // ---------- Tabla ----------
+  const tTop = tableTop;
+  doc.setFillColor(...NAVY); doc.rect(margin, tTop, pageW - margin * 2, tableHeadH, 'F');
+  doc.setTextColor(...WHITE); doc.setFontSize(8.5); doc.setFont(undefined, 'bold');
+  doc.text('PRODUCTO', prodX, tTop + 17);
+  doc.text('CANT.', colCantR, tTop + 17, { align: 'right' });
+  doc.text('P. UNIT.', colUnitR, tTop + 17, { align: 'right' });
+  doc.text('SUBTOTAL', colSubR, tTop + 17, { align: 'right' });
+
+  let ry = tTop + tableHeadH;
+  doc.setFont(undefined, 'normal'); doc.setTextColor(...INK); doc.setFontSize(9.5);
+  filas.forEach(f => {
+    doc.setDrawColor(228, 231, 230); doc.setLineWidth(0.8);
+    doc.line(margin, ry + f.h, pageW - margin, ry + f.h);
+    const baseY = ry + 15;
+    doc.text(f.lineas, prodX, baseY);
+    doc.text(String(f.it.cantidad), colCantR, baseY, { align: 'right' });
+    doc.text('S/ ' + f.it.precioVenta.toFixed(2), colUnitR, baseY, { align: 'right' });
+    doc.text('S/ ' + (f.it.precioVenta * f.it.cantidad).toFixed(2), colSubR, baseY, { align: 'right' });
+    ry += f.h;
   });
-  doc.setLineWidth(1.5); doc.setDrawColor(0,0,0); doc.line(30, ry, pageW-30, ry);
 
-  // Totales
-  let ty = ry+22;
-  doc.setFontSize(9.5); doc.setTextColor(90,90,90);
-  doc.text('Subtotal', pageW-215, ty); doc.text('S/ '+total.toFixed(2), pageW-38, ty, {align:'right'});
-  ty += 16;
-  doc.text('IGV incluido', pageW-215, ty); doc.text('S/ '+igv.toFixed(2), pageW-38, ty, {align:'right'});
-  ty += 20;
-  doc.setDrawColor(0,0,0); doc.setLineWidth(1.5); doc.line(pageW-235, ty-12, pageW-30, ty-12);
-  doc.setFontSize(15); doc.setFont(undefined,'bold'); doc.setTextColor(0,0,0);
-  doc.text('TOTAL', pageW-215, ty+8);
-  doc.setFillColor(0,0,0); doc.rect(pageW-118, ty-8, 88, 20, 'F');
-  doc.setTextColor(...CYAN);
-  doc.text('S/ '+total.toFixed(2), pageW-38, ty+7, {align:'right'});
+  // ---------- Totales ----------
+  let ty = ry + 24;
+  doc.setFontSize(9.5); doc.setTextColor(...GRAY); doc.setFont(undefined, 'normal');
+  doc.text('Subtotal', colCantR, ty); doc.text('S/ ' + total.toFixed(2), colSubR, ty, { align: 'right' });
+  ty += 17;
+  doc.text('IGV Incluido (18%)', colCantR, ty); doc.text('S/ ' + igv.toFixed(2), colSubR, ty, { align: 'right' });
+  ty += 22;
+  doc.setFillColor(...NAVY); doc.rect(colCantR - 12, ty - 15, (pageW - margin) - (colCantR - 12), 26, 'F');
+  doc.setTextColor(...WHITE); doc.setFontSize(13); doc.setFont(undefined, 'bold');
+  doc.text('TOTAL', colCantR, ty + 3);
+  doc.setTextColor(...JADE_BRIGHT);
+  doc.text('S/ ' + total.toFixed(2), colSubR, ty + 3, { align: 'right' });
 
-  // Pie
-  let fy = ty+38;
-  doc.setDrawColor(200,200,200); doc.setLineWidth(0.5);
-  for(let x=30;x<pageW-30;x+=6){ doc.line(x,fy,x+3,fy); }
+  // ---------- Pie ----------
+  let fy = ty + 40;
+  doc.setDrawColor(...JADE); doc.setLineWidth(1);
+  doc.setFontSize(8.5); doc.setTextColor(...JADE); doc.setFont(undefined, 'bold');
+  doc.text('MÉTODOS DE PAGO', prodX, fy);
   fy += 18;
-  doc.setFontSize(8.5); doc.setTextColor(0,37,43); doc.setDrawColor(...CYAN);
-  doc.roundedRect(30, fy-11, 40, 16, 3, 3); doc.text('Yape', 50, fy, {align:'center'});
-  doc.roundedRect(76, fy-11, 78, 16, 3, 3); doc.text('Transferencia', 115, fy, {align:'center'});
-  fy += 24;
-  doc.setFont(undefined,'bold'); doc.setTextColor(20,20,20); doc.setFontSize(9);
-  doc.text('Esta cotización tiene una validez de 7 días desde su emisión. Precios sujetos a stock disponible.', 30, fy, {maxWidth: pageW-60});
+  doc.setFillColor(126, 31, 168); doc.roundedRect(prodX, fy - 12, 46, 18, 4, 4, 'F');
+  doc.setTextColor(...WHITE); doc.setFontSize(8.5); doc.setFont(undefined, 'bolditalic');
+  doc.text('yape', prodX + 23, fy, { align: 'center' });
+  doc.setDrawColor(...JADE); doc.setLineWidth(1.1);
+  doc.roundedRect(prodX + 58, fy - 12, 92, 18, 4, 4, 'S');
+  doc.setTextColor(...INK); doc.setFontSize(8.5); doc.setFont(undefined, 'normal');
+  doc.text('Transferencia', prodX + 104, fy, { align: 'center' });
+
+  fy += 30;
+  doc.setDrawColor(...JADE); doc.setLineWidth(0.8);
+  for (let x = margin; x < pageW - margin; x += 6) { doc.line(x, fy, x + 3, fy); }
+  fy += 18;
+  iconDoc(prodX + 6, fy - 4, 13, JADE);
+  doc.setFontSize(8.5); doc.setTextColor(...INK); doc.setFont(undefined, 'bold');
+  doc.text('Observaciones:', prodX + 20, fy);
+  doc.setFont(undefined, 'normal'); doc.setTextColor(...GRAY);
+  doc.text('Esta cotización tiene una validez de 7 días desde su emisión. Precios sujetos a stock disponible.', prodX + 20, fy + 14, { maxWidth: pageW - 80 });
 
   doc.save('Cotizacion_' + numero + '.pdf');
 }
