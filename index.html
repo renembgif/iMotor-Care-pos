@@ -1081,10 +1081,10 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
   });
   const alturaFilas = filas.reduce((s, f) => s + f.h, 0);
 
-  const headerH = 148, infoH = 76, clienteH = 68, tableHeadH = 26, totalsH = 108, footerH = 90;
+  const headerH = 148, infoH = 76, clienteH = 68, tableHeadH = 26, totalsH = 108, footerH = 90, socialBarH = 64;
   const tableTop = headerH + infoH + clienteH;
   const tableBottom = tableTop + tableHeadH + alturaFilas;
-  const pageH = Math.max(500, tableBottom + totalsH + footerH + margin);
+  const pageH = Math.max(560, tableBottom + totalsH + footerH + socialBarH + margin);
 
   const doc = new jsPDF({ unit: 'pt', format: [pageW, pageH] });
 
@@ -1118,6 +1118,41 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
     doc.setFillColor(...color);
     doc.circle(x, y - s * 0.26, s * 0.24, 'F');
     doc.roundedRect(x - s * 0.38, y + s * 0.02, s * 0.76, s * 0.5, s * 0.2, s * 0.2, 'F');
+  }
+  // Insignias de redes/pago con sus colores de marca originales (representación simplificada)
+  function badgeFacebook(x, y, s) {
+    doc.setFillColor(24, 119, 242); doc.roundedRect(x, y, s, s, 5, 5, 'F');
+    doc.setTextColor(255, 255, 255); doc.setFont(undefined, 'bold'); doc.setFontSize(s * 0.64);
+    doc.text('f', x + s / 2, y + s * 0.74, { align: 'center' });
+  }
+  function badgeInstagram(x, y, s) {
+    doc.setFillColor(193, 53, 132); doc.roundedRect(x, y, s, s, 5, 5, 'F');
+    doc.setDrawColor(255, 255, 255); doc.setLineWidth(1.2);
+    doc.roundedRect(x + s * 0.24, y + s * 0.24, s * 0.52, s * 0.52, 3, 3, 'S');
+    doc.circle(x + s / 2, y + s / 2, s * 0.13, 'S');
+    doc.setFillColor(255, 255, 255); doc.circle(x + s * 0.73, y + s * 0.27, s * 0.045, 'F');
+  }
+  function badgeTikTok(x, y, s) {
+    doc.setFillColor(0, 0, 0); doc.roundedRect(x, y, s, s, 5, 5, 'F');
+    doc.setFillColor(37, 244, 238); doc.circle(x + s * 0.44, y + s * 0.63, s * 0.13, 'F');
+    doc.setFillColor(254, 44, 85); doc.circle(x + s * 0.58, y + s * 0.63, s * 0.13, 'F');
+    doc.setFillColor(255, 255, 255); doc.circle(x + s * 0.51, y + s * 0.6, s * 0.13, 'F');
+    doc.rect(x + s * 0.47, y + s * 0.2, s * 0.09, s * 0.4, 'F');
+  }
+  function badgeYape(x, y, w, h) {
+    doc.setFillColor(126, 31, 168); doc.roundedRect(x, y, w, h, 5, 5, 'F');
+    doc.setTextColor(255, 255, 255); doc.setFont(undefined, 'bolditalic'); doc.setFontSize(h * 0.44);
+    doc.text('yape', x + w / 2, y + h * 0.66, { align: 'center' });
+  }
+  function iconBank(x, y, s, color) {
+    doc.setDrawColor(...color); doc.setLineWidth(1.2);
+    doc.triangle(x - s * 0.42, y - s * 0.14, x + s * 0.42, y - s * 0.14, x, y - s * 0.5, 'S');
+    doc.rect(x - s * 0.42, y - s * 0.14, s * 0.84, s * 0.08, 'S');
+    doc.line(x - s * 0.32, y - s * 0.02, x - s * 0.32, y + s * 0.32);
+    doc.line(x - s * 0.08, y - s * 0.02, x - s * 0.08, y + s * 0.32);
+    doc.line(x + s * 0.16, y - s * 0.02, x + s * 0.16, y + s * 0.32);
+    doc.line(x + s * 0.4, y - s * 0.02, x + s * 0.4, y + s * 0.32);
+    doc.line(x - s * 0.46, y + s * 0.36, x + s * 0.46, y + s * 0.36);
   }
 
   // ---------- Encabezado (azul noche) ----------
@@ -1196,19 +1231,15 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
 
   // ---------- Pie ----------
   let fy = ty + 40;
-  doc.setDrawColor(...JADE); doc.setLineWidth(1);
   doc.setFontSize(8.5); doc.setTextColor(...JADE); doc.setFont(undefined, 'bold');
   doc.text('MÉTODOS DE PAGO', prodX, fy);
-  fy += 18;
-  doc.setFillColor(126, 31, 168); doc.roundedRect(prodX, fy - 12, 46, 18, 4, 4, 'F');
-  doc.setTextColor(...WHITE); doc.setFontSize(8.5); doc.setFont(undefined, 'bolditalic');
-  doc.text('yape', prodX + 23, fy, { align: 'center' });
-  doc.setDrawColor(...JADE); doc.setLineWidth(1.1);
-  doc.roundedRect(prodX + 58, fy - 12, 92, 18, 4, 4, 'S');
-  doc.setTextColor(...INK); doc.setFontSize(8.5); doc.setFont(undefined, 'normal');
-  doc.text('Transferencia', prodX + 104, fy, { align: 'center' });
+  fy += 22;
+  badgeYape(prodX, fy - 15, 44, 20);
+  iconBank(prodX + 66, fy - 5, 20, JADE);
+  doc.setTextColor(...INK); doc.setFontSize(9); doc.setFont(undefined, 'normal');
+  doc.text('Transferencia', prodX + 82, fy);
 
-  fy += 30;
+  fy += 34;
   doc.setDrawColor(...JADE); doc.setLineWidth(0.8);
   for (let x = margin; x < pageW - margin; x += 6) { doc.line(x, fy, x + 3, fy); }
   fy += 18;
@@ -1217,6 +1248,30 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
   doc.text('Observaciones:', prodX + 20, fy);
   doc.setFont(undefined, 'normal'); doc.setTextColor(...GRAY);
   doc.text('Esta cotización tiene una validez de 7 días desde su emisión. Precios sujetos a stock disponible.', prodX + 20, fy + 14, { maxWidth: pageW - 80 });
+
+  // ---------- Franja inferior: redes sociales ----------
+  const barY = pageH - socialBarH;
+  doc.setFillColor(...NAVY); doc.rect(0, barY, pageW, socialBarH, 'F');
+  chevron(pageW - 90, barY, 40, socialBarH, 22, [0, 60, 56]);
+  chevron(pageW - 52, barY, 32, socialBarH, 22, [0, 95, 84]);
+
+  doc.setTextColor(...WHITE); doc.setFontSize(8.5); doc.setFont(undefined, 'bold');
+  doc.text('Síguenos en nuestras redes:', prodX, barY + 24);
+  const iconsY = barY + 34, iconS = 20;
+  badgeTikTok(prodX, iconsY, iconS);
+  badgeFacebook(prodX + iconS + 8, iconsY, iconS);
+  badgeInstagram(prodX + (iconS + 8) * 2, iconsY, iconS);
+
+  const infoX = prodX + (iconS + 8) * 3 + 14;
+  doc.setDrawColor(0, 90, 82); doc.setLineWidth(1);
+  doc.line(infoX, barY + 18, infoX, barY + 50);
+  doc.setTextColor(...WHITE); doc.setFontSize(10.5); doc.setFont(undefined, 'bold');
+  doc.text('iMotor Care', infoX + 14, barY + 32);
+  doc.setTextColor(...JADE_BRIGHT); doc.setFontSize(8.5); doc.setFont(undefined, 'normal');
+  doc.text('Cuidado Automotriz', infoX + 14, barY + 46);
+
+  doc.setTextColor(...JADE_BRIGHT); doc.setFontSize(13); doc.setFont(undefined, 'bolditalic');
+  doc.text('Gracias por su preferencia', pageW - 30, barY + socialBarH / 2 + 4, { align: 'right', angle: -3 });
 
   doc.save('Cotizacion_' + numero + '.pdf');
 }
