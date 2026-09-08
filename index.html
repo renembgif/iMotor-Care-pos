@@ -1090,7 +1090,7 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
   const headerH = 120, infoH = 94, clienteH = 68, tableHeadH = 26, totalsH = 108, footerH = 90, socialBarH = 100;
   const tableTop = headerH + infoH + clienteH;
   const tableBottom = tableTop + tableHeadH + alturaFilas;
-  const pageH = Math.max(560, tableBottom + totalsH + footerH + socialBarH + margin);
+  const pageH = Math.max(842, tableBottom + totalsH + footerH + socialBarH + margin); // A4 vertical (595x842pt) por defecto
 
   const doc = new jsPDF({ unit: 'pt', format: [pageW, pageH] });
 
@@ -1125,16 +1125,49 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
     doc.circle(x, y - s * 0.26, s * 0.24, 'F');
     doc.roundedRect(x - s * 0.38, y + s * 0.02, s * 0.76, s * 0.5, s * 0.2, s * 0.2, 'F');
   }
-  // Insignias de redes/pago: PNG reales del usuario, con esquinas redondeadas simuladas por recorte
+  // Insignias de redes/pago: PNG real (Yape) + íconos vectoriales jade minimalistas
   function badgeImg(b64, x, y, s) {
     try { doc.addImage('data:image/png;base64,' + b64, 'PNG', x, y, s, s); } catch (e) {}
   }
-  function badgeFacebook(x, y, s) { badgeImg(ICON_FACEBOOK_B64, x, y, s); }
-  function badgeInstagram(x, y, s) { badgeImg(ICON_INSTAGRAM_B64, x, y, s); }
-  function badgeTikTok(x, y, s) { badgeImg(ICON_TIKTOK_B64, x, y, s); }
-  function badgeWhatsapp(x, y, s) { badgeImg(ICON_WHATSAPP_B64, x, y, s); }
   function badgeYape(x, y, w, h) { badgeImg(ICON_YAPE_B64, x, y, w, w); }
-  function badgeTarjeta(x, y, w, h) { badgeImg(ICON_TARJETA_B64, x, y, w, w); }
+
+  // Círculo jade con glifo blanco (íconos de redes sociales, estilo minimalista)
+  function socialIcon(x, y, s, glyphFn) {
+    const r = s / 2, cx = x + r, cy = y + r;
+    doc.setFillColor(...JADE); doc.circle(cx, cy, r, 'F');
+    glyphFn(cx, cy, r);
+  }
+  function glyphTikTok(cx, cy, r) {
+    doc.setFillColor(255, 255, 255);
+    doc.circle(cx - r * 0.22, cy + r * 0.32, r * 0.2, 'F');
+    doc.setDrawColor(255, 255, 255); doc.setLineWidth(r * 0.16);
+    doc.line(cx - r * 0.02, cy + r * 0.32, cx - r * 0.02, cy - r * 0.42);
+    doc.triangle(cx - r * 0.02, cy - r * 0.42, cx + r * 0.34, cy - r * 0.26, cx - r * 0.02, cy - r * 0.02, 'F');
+  }
+  function glyphInstagram(cx, cy, r) {
+    doc.setDrawColor(255, 255, 255); doc.setLineWidth(r * 0.15);
+    doc.roundedRect(cx - r * 0.5, cy - r * 0.5, r, r, r * 0.24, r * 0.24, 'S');
+    doc.circle(cx, cy, r * 0.24, 'S');
+    doc.setFillColor(255, 255, 255); doc.circle(cx + r * 0.32, cy - r * 0.32, r * 0.06, 'F');
+  }
+  function glyphFacebook(cx, cy, r) {
+    doc.setTextColor(255, 255, 255); doc.setFont(undefined, 'bold'); doc.setFontSize(r * 1.5);
+    doc.text('f', cx, cy + r * 0.35, { align: 'center' });
+  }
+  function badgeTikTok(x, y, s) { socialIcon(x, y, s, glyphTikTok); }
+  function badgeInstagram(x, y, s) { socialIcon(x, y, s, glyphInstagram); }
+  function badgeFacebook(x, y, s) { socialIcon(x, y, s, glyphFacebook); }
+
+  // Insignia de pago "Transferencia": cuadrado jade con ícono de banco
+  function badgeTransferencia(x, y, s) {
+    doc.setFillColor(...JADE); doc.roundedRect(x, y, s, s, s * 0.22, s * 0.22, 'F');
+    const cx = x + s / 2, cy = y + s / 2, r = s * 0.42;
+    doc.setFillColor(255, 255, 255);
+    doc.triangle(cx - r * 0.5, cy - r * 0.05, cx + r * 0.5, cy - r * 0.05, cx, cy - r * 0.55, 'F');
+    doc.rect(cx - r * 0.45, cy - r * 0.05, r * 0.9, r * 0.08, 'F');
+    doc.rect(cx - r * 0.45, cy + r * 0.18, r * 0.9, r * 0.08, 'F');
+    for (let i = -1; i <= 1; i++) { doc.rect(cx + i * r * 0.3 - r * 0.05, cy + r * 0.03, r * 0.1, r * 0.15, 'F'); }
+  }
 
   // ---------- Encabezado (azul noche) ----------
   doc.setFillColor(...NAVY); doc.rect(0, 0, pageW, headerH, 'F');
@@ -1217,7 +1250,7 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
   badgeYape(prodX, fy - 17, 34);
   doc.setTextColor(...INK); doc.setFontSize(9); doc.setFont(undefined, 'normal');
   doc.text('Yape', prodX + 42, fy - 1);
-  badgeTarjeta(prodX + 100, fy - 17, 34);
+  badgeTransferencia(prodX + 100, fy - 17, 34);
   doc.text('Transferencia', prodX + 142, fy - 1);
 
   fy += 36;
@@ -1244,9 +1277,8 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
   const iconsX = prodX + doc.getTextWidth(etiquetaRedes) + 16;
   const iconsY = barY + 14;
   badgeTikTok(iconsX, iconsY, iconS);
-  badgeFacebook(iconsX + (iconS + iconGap), iconsY, iconS);
-  badgeInstagram(iconsX + (iconS + iconGap) * 2, iconsY, iconS);
-  badgeWhatsapp(iconsX + (iconS + iconGap) * 3, iconsY, iconS);
+  badgeInstagram(iconsX + (iconS + iconGap), iconsY, iconS);
+  badgeFacebook(iconsX + (iconS + iconGap) * 2, iconsY, iconS);
 
   // Fila 2: iMotor Care / Cuidado Automotriz, debajo (sin competir por espacio horizontal)
   doc.setTextColor(...WHITE); doc.setFontSize(11); doc.setFont(undefined, 'bold');
