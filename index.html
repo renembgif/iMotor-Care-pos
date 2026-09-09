@@ -1338,7 +1338,8 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
   // ---------- Totales ----------
   let ty = ry + 24;
   doc.setFontSize(9.5); doc.setTextColor(...GRAY); doc.setFont(undefined, 'normal');
-  doc.text('Subtotal', colCantR, ty); doc.text('S/ ' + total.toFixed(2), colSubR, ty, { align: 'right' });
+  const baseImponible = total - igv;
+  doc.text('Subtotal', colCantR, ty); doc.text('S/ ' + baseImponible.toFixed(2), colSubR, ty, { align: 'right' });
   ty += 17;
   doc.text('IGV Incluido (18%)', colCantR, ty); doc.text('S/ ' + igv.toFixed(2), colSubR, ty, { align: 'right' });
   ty += 26;
@@ -1348,7 +1349,7 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
   doc.setTextColor(...JADE_BRIGHT); doc.setFontSize(16);
   doc.text('S/ ' + total.toFixed(2), colSubR, ty + 3, { align: 'right' });
 
-  // ---------- Pie ----------
+  // ---------- Pie: Métodos de pago + Observaciones (fondo blanco) ----------
   let fy = ty + 40;
   doc.setFontSize(9.5); doc.setTextColor(...JADE); doc.setFont(undefined, 'bold');
   doc.text('MÉTODOS DE PAGO', prodX, fy);
@@ -1369,28 +1370,42 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
   doc.setFont(undefined, 'normal'); doc.setTextColor(...GRAY);
   doc.text('Esta cotización tiene una validez de 7 días desde su emisión. Precios sujetos a stock disponible.', prodX + 20, fy + 14, { maxWidth: pageW - 80 });
 
-  // ---------- Franja inferior: redes sociales ----------
+  // ---------- Franja inferior: redes sociales + logo + "Gracias por su preferencia" (fondo blanco, sin rectángulos oscuros) ----------
   const barY = pageH - socialBarH;
-  doc.setFillColor(...NAVY); doc.rect(0, barY, pageW, socialBarH, 'F');
-  chevron(pageW - 90, barY, 40, socialBarH, 22, [0, 60, 56]);
-  chevron(pageW - 52, barY, 32, socialBarH, 22, [0, 95, 84]);
+  doc.setDrawColor(...LINE); doc.setLineWidth(1);
+  doc.line(margin, barY, pageW - margin, barY);
 
-  // Fila 1: etiqueta + 4 íconos reales (ancho medido, sin encimar nada)
-  doc.setTextColor(...WHITE); doc.setFontSize(9.5); doc.setFont(undefined, 'bold');
+  const dividerX = pageW - 190;
+  const rowY = barY + (socialBarH / 2);
+
+  // Bloque izquierdo: etiqueta + 3 íconos reales + handle
+  doc.setTextColor(...INK); doc.setFontSize(9.5); doc.setFont(undefined, 'bold');
   const etiquetaRedes = 'Síguenos en nuestras redes:';
-  doc.text(etiquetaRedes, prodX, barY + 26);
-  const iconS = 26, iconGap = 9;
-  const iconsX = prodX + doc.getTextWidth(etiquetaRedes) + 16;
-  const iconsY = barY + 14;
+  doc.text(etiquetaRedes, prodX, rowY - 14);
+  const iconS = 24, iconGap = 8;
+  const iconsX = prodX;
+  const iconsY = rowY - 2;
   badgeTikTok(iconsX, iconsY, iconS);
   badgeInstagram(iconsX + (iconS + iconGap), iconsY, iconS);
   badgeFacebook(iconsX + (iconS + iconGap) * 2, iconsY, iconS);
+  doc.setTextColor(...INK); doc.setFontSize(9.5); doc.setFont(undefined, 'normal');
+  doc.text('iMotor Care', iconsX + (iconS + iconGap) * 3 + 8, iconsY + iconS / 2 + 3);
 
-  // Fila 2: iMotor Care / Cuidado Automotriz, debajo (sin competir por espacio horizontal)
-  doc.setTextColor(...WHITE); doc.setFontSize(11); doc.setFont(undefined, 'bold');
-  doc.text('iMotor Care', prodX, barY + 66);
-  doc.setTextColor(...JADE_BRIGHT); doc.setFontSize(8.5); doc.setFont(undefined, 'normal');
-  doc.text('Lubricentro · Cuidado Automotriz', prodX, barY + 80);
+  // Línea divisoria vertical
+  doc.setDrawColor(...JADE); doc.setLineWidth(1);
+  doc.line(dividerX, barY + 14, dividerX, pageH - 14);
+
+  // Bloque derecho: logo tipográfico + tagline + "Gracias por su preferencia" (alineado a la derecha)
+  const rightX = pageW - margin;
+  doc.setFontSize(13); doc.setFont(undefined, 'bold');
+  const partCare = 'Care', partIMotor = 'iMotor ';
+  const wCare = doc.getTextWidth(partCare);
+  doc.setTextColor(...JADE); doc.text(partCare, rightX, rowY - 12, { align: 'right' });
+  doc.setTextColor(...INK); doc.text(partIMotor, rightX - wCare, rowY - 12, { align: 'right' });
+  doc.setFontSize(8.5); doc.setFont(undefined, 'normal'); doc.setTextColor(...GRAY);
+  doc.text('Lubricentro · Cuidado Automotriz', rightX, rowY + 2, { align: 'right' });
+  doc.setFontSize(11); doc.setFont(undefined, 'italic'); doc.setTextColor(...JADE);
+  doc.text('Gracias por su preferencia', rightX, rowY + 20, { align: 'right' });
 
   doc.save('Cotizacion_' + numero + '.pdf');
 }
