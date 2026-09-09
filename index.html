@@ -269,6 +269,49 @@ button{ cursor:pointer; }
 .declaracion-sub{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; font-size:12.5px; color:#c7c2b6; }
 .declaracion-sub b{ color:#fff; }
 
+/* ---------- Hero band (Inicio / Resumen SUNAT) ---------- */
+.hero-band{
+  background:linear-gradient(135deg, var(--graphite), #0c211d);
+  border-radius:var(--radius); padding:20px 24px; color:#fff; margin-bottom:16px;
+  display:flex; flex-wrap:wrap; align-items:center; gap:20px 26px;
+}
+.hero-band .hero-title{ flex:1 1 180px; }
+.hero-band .hero-title .ht-label{ font-size:14px; font-weight:800; }
+.hero-band .hero-title .ht-sub{ font-size:11.5px; color:#8fa39c; margin-top:2px; }
+.hero-stats{ display:flex; flex-wrap:wrap; gap:22px 28px; }
+.hero-stat{ display:flex; align-items:center; gap:10px; }
+.hero-stat .hs-icon{
+  width:34px; height:34px; border-radius:9px; background:rgba(0,217,163,.16); color:var(--jade);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.hero-stat .hs-label{ font-size:10px; font-weight:700; color:#8fa39c; text-transform:uppercase; letter-spacing:.05em; }
+.hero-stat .hs-value{ font-size:17px; font-weight:800; font-family:var(--font-mono); }
+.hs-badge{ font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:8px; margin-left:6px; white-space:nowrap; }
+.hs-badge.pos{ background:rgba(0,217,163,.18); color:var(--jade); }
+.hs-badge.neg{ background:rgba(255,138,90,.18); color:#ff9b6a; }
+.hs-badge.neutral{ background:rgba(255,255,255,.1); color:#c7c2b6; }
+
+/* ---------- Stat cards (Resumen SUNAT / Caja) ---------- */
+.stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; margin-bottom:18px; }
+.stat-card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; }
+.stat-card .sc-head{ display:flex; align-items:center; gap:9px; margin-bottom:10px; }
+.stat-card .sc-icon{
+  width:30px; height:30px; border-radius:8px; background:rgba(0,217,163,.13); color:var(--jade-deep);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.stat-card .sc-label{ font-size:10.5px; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; }
+.stat-card .sc-value{ font-size:23px; font-weight:800; letter-spacing:-.01em; }
+.stat-card .sc-sub{ display:flex; justify-content:space-between; font-size:12px; color:var(--text-dim); padding:6px 0 0; margin-top:8px; border-top:1px solid #f0eee7; }
+.stat-card .sc-sub:first-of-type{ border-top:1px solid #f0eee7; margin-top:10px; }
+.stat-card .sc-note{ font-size:11px; color:var(--text-dim); margin-top:9px; line-height:1.4; }
+.stat-card .sc-highlight{
+  background:#eefaf5; border-radius:8px; padding:10px 12px; margin-bottom:2px;
+}
+.stat-card .sc-highlight.warn{ background:#fdf1ec; }
+.stat-card .sc-highlight .sc-hl-label{ font-size:10.5px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em; }
+.stat-card .sc-highlight .sc-hl-value{ font-size:19px; font-weight:800; color:var(--jade-deep); margin-top:2px; }
+.stat-card .sc-highlight.warn .sc-hl-value{ color:var(--warn); }
+
 /* ---------- Bottom nav (mobile) ---------- */
 .bottom-nav{ display:none; }
 @media (max-width:820px){
@@ -442,12 +485,41 @@ button{ cursor:pointer; }
     <!-- ---------- DASHBOARD ---------- -->
     <section class="view active" id="view-dashboard">
       <div class="topline"><h2>Inicio</h2><span class="caja-pill" id="estado-conexion"><span class="dot"></span> Conectando…</span></div>
-      <div class="grid-cards">
-        <div class="card accent"><div class="label">Ventas de este mes</div><div class="value" id="d-ventas-mes">—</div></div>
-        <div class="card"><div class="label">Compras/Gastos mes</div><div class="value" id="d-compras-mes">—</div></div>
-        <div class="card"><div class="label">Ganancia estimada</div><div class="value" id="d-ganancia">—</div></div>
-        <div class="card"><div class="label">Total a pagar SUNAT</div><div class="value" id="d-sunat">—</div></div>
+
+      <div class="hero-band">
+        <div class="hero-title"><div class="ht-label" id="d-mes-label">Este mes</div><div class="ht-sub">Resumen del negocio</div></div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hs-icon"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/><path d="M2.5 3h2l2.1 11a2 2 0 0 0 2 1.6h7.4a2 2 0 0 0 1.9-1.5L20 7.5H6"/></svg></div>
+            <div><div class="hs-label">Ventas del mes</div><div class="hs-value" id="d-ventas-mes">—</div></div>
+          </div>
+          <div class="hero-stat">
+            <div class="hs-icon"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8V6a5.5 5.5 0 0 1 11 0v2"/><path d="M4.8 8h14.4l-1.1 12.2a1.5 1.5 0 0 1-1.5 1.3H7.4a1.5 1.5 0 0 1-1.5-1.3z"/></svg></div>
+            <div><div class="hs-label">Compras/gastos</div><div class="hs-value" id="d-compras-mes">—</div></div>
+          </div>
+          <div class="hero-stat">
+            <div class="hs-icon"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8.3h8M8 12h8M8 15.7h5"/></svg></div>
+            <div><div class="hs-label">SUNAT del mes</div><div class="hs-value" id="d-sunat">—</div> <span class="hs-badge" id="d-sunat-badge"></span></div>
+          </div>
+        </div>
       </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="sc-head"><div class="sc-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/><path d="M2.5 3h2l2.1 11a2 2 0 0 0 2 1.6h7.4a2 2 0 0 0 1.9-1.5L20 7.5H6"/></svg></div><div class="sc-label">Ventas del mes</div></div>
+          <div class="sc-value" id="d-ventas-mes-2">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-head"><div class="sc-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8V6a5.5 5.5 0 0 1 11 0v2"/><path d="M4.8 8h14.4l-1.1 12.2a1.5 1.5 0 0 1-1.5 1.3H7.4a1.5 1.5 0 0 1-1.5-1.3z"/></svg></div><div class="sc-label">Compras/gastos mes</div></div>
+          <div class="sc-value" id="d-compras-mes-2">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-head"><div class="sc-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5.5 4 3.5 8-9"/><path d="M15 6h5v5"/></svg></div><div class="sc-label">Ganancia estimada</div></div>
+          <div class="sc-value" id="d-ganancia">—</div>
+          <div class="sc-note">Diferencia del mes (ventas − compras), no la utilidad contable real: puede incluir mercadería que sigue en inventario.</div>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-head">Stock bajo</div>
         <div class="panel-body" id="d-stock-bajo"><div class="empty-note">Cargando…</div></div>
@@ -621,14 +693,19 @@ button{ cursor:pointer; }
     <section class="view" id="view-caja">
       <div class="topline"><h2>Caja</h2></div>
       <div class="empty-note" style="margin-bottom:10px;font-size:12px;">Saldo acumulado por medio de pago: todo lo vendido menos todo lo comprado/gastado en ese medio (Transferencia no se cuenta como caja física).</div>
-      <div class="declaracion-box">
-        <div class="dl">Total disponible</div>
-        <div class="dv" id="cj-total">S/ 0.00</div>
-        <div class="declaracion-sub"><span>Efectivo: <b id="cj-efectivo-mini">S/0</b></span><span>Yape: <b id="cj-yape-mini">S/0</b></span></div>
-      </div>
-      <div class="grid-cards" style="margin-top:14px;">
-        <div class="card"><div class="label">Efectivo</div><div class="value" id="cj-efectivo">—</div></div>
-        <div class="card"><div class="label">Yape</div><div class="value" id="cj-yape">—</div></div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="sc-head"><div class="sc-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.3"/><path d="M13 12.7A5.3 5.3 0 1 1 8 2.7"/><path d="M8 5.3v5.4M6 7h4"/></svg></div><div class="sc-label">Efectivo</div></div>
+          <div class="sc-value" id="cj-efectivo">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-head"><div class="sc-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2.4"/><path d="M3 9h18"/><circle cx="7" cy="13.3" r="1.1"/></svg></div><div class="sc-label">Yape</div></div>
+          <div class="sc-value" id="cj-yape">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-head"><div class="sc-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5h13a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2z"/><path d="M16.5 10.7h2.8a1 1 0 0 1 1 1v2.6a1 1 0 0 1-1 1h-2.8z"/><path d="M3.5 6.5l2.4-3.2a1.4 1.4 0 0 1 1.9-.3l7.6 4.5"/></svg></div><div class="sc-label">Total disponible</div></div>
+          <div class="sc-value" id="cj-total">—</div>
+        </div>
       </div>
     </section>
 
@@ -667,17 +744,53 @@ button{ cursor:pointer; }
         <select id="r-mes" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></select>
         <button class="btn-primary" id="r-calcular" style="width:auto;padding:10px 18px;">Calcular</button>
       </div>
-      <div class="declaracion-box">
-        <div class="dl">Total a pagar SUNAT</div>
-        <div class="dv" id="r-total">S/ 0.00</div>
-        <div class="declaracion-sub"><span>IGV a pagar: <b id="r-igv">S/0</b></span><span>Renta RER 1.5%: <b id="r-rer">S/0</b></span></div>
+
+      <div class="hero-band">
+        <div class="hero-title"><div class="ht-label" id="r-periodo-label">—</div><div class="ht-sub">Periodo tributario</div></div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hs-icon"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8.3h8M8 12h8M8 15.7h5"/></svg></div>
+            <div><div class="hs-label">Total a pagar SUNAT</div><div class="hs-value" id="r-apagar">S/ 0.00</div> <span class="hs-badge" id="r-apagar-badge"></span></div>
+          </div>
+          <div class="hero-stat">
+            <div class="hs-icon"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><path d="M2.5 9.5h19"/></svg></div>
+            <div><div class="hs-label">Saldo a favor / crédito fiscal</div><div class="hs-value" id="r-favor">S/ 0.00</div> <span class="hs-badge" id="r-favor-badge"></span></div>
+          </div>
+          <div class="hero-stat">
+            <div class="hs-icon"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M4 10l6-6 6 6 4-4"/></svg></div>
+            <div><div class="hs-label">Renta RER</div><div class="hs-value" id="r-rer">S/ 0.00</div> <span class="hs-badge" id="r-rer-badge"></span></div>
+          </div>
+        </div>
       </div>
-      <div class="grid-cards" style="margin-top:14px;">
-        <div class="card"><div class="label">Ventas base</div><div class="value" style="font-size:16px;" id="r-vbase">—</div></div>
-        <div class="card"><div class="label">Compras base</div><div class="value" style="font-size:16px;" id="r-cbase">—</div></div>
-        <div class="card"><div class="label">IGV ventas</div><div class="value" style="font-size:16px;" id="r-igvv">—</div></div>
-        <div class="card"><div class="label">IGV compras</div><div class="value" style="font-size:16px;" id="r-igvc">—</div></div>
-        <div class="card"><div class="label">Ganancia del periodo</div><div class="value" style="font-size:16px;" id="r-ganancia">—</div></div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="sc-head"><div class="sc-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/><path d="M2.5 3h2l2.1 11a2 2 0 0 0 2 1.6h7.4a2 2 0 0 0 1.9-1.5L20 7.5H6"/></svg></div><div class="sc-label">Ventas</div></div>
+          <div class="sc-value" id="r-ventas-total">S/ 0.00</div>
+          <div class="sc-sub"><span>Sin IGV (base imponible)</span><b id="r-vbase">S/0</b></div>
+          <div class="sc-sub"><span>IGV generado</span><b id="r-igvv">S/0</b></div>
+          <div class="sc-note" id="r-ventas-nota"></div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-head"><div class="sc-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8V6a5.5 5.5 0 0 1 11 0v2"/><path d="M4.8 8h14.4l-1.1 12.2a1.5 1.5 0 0 1-1.5 1.3H7.4a1.5 1.5 0 0 1-1.5-1.3z"/></svg></div><div class="sc-label">Compras / gastos</div></div>
+          <div class="sc-value" id="r-compras-total">S/ 0.00</div>
+          <div class="sc-sub"><span>Sin IGV (base imponible)</span><b id="r-cbase">S/0</b></div>
+          <div class="sc-sub"><span>IGV de compras</span><b id="r-igvc">S/0</b></div>
+          <div class="sc-note">Incluye todas las compras y gastos registrados en el periodo.</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-head"><div class="sc-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8.3h8M8 12h8M8 15.7h5"/></svg></div><div class="sc-label">Resultado tributario</div></div>
+          <div class="sc-highlight" id="r-hl-box">
+            <div class="sc-hl-label" id="r-hl-label">Saldo a favor / crédito fiscal</div>
+            <div class="sc-hl-value" id="r-hl-value">S/ 0.00</div>
+          </div>
+          <div class="sc-sub" style="margin-top:10px;"><span>Renta RER</span><b id="r-rer-2">S/0</b></div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-head"><div class="sc-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5.5 4 3.5 8-9"/><path d="M15 6h5v5"/></svg></div><div class="sc-label">Resultado del periodo</div></div>
+          <div class="sc-value" id="r-ganancia">S/ 0.00</div>
+          <div class="sc-note">Este indicador no representa necesariamente la ganancia real del negocio, ya que las compras pueden incluir mercadería que permanece en inventario.</div>
+        </div>
       </div>
     </section>
   </main>
@@ -944,13 +1057,22 @@ document.addEventListener('click', () => masMenu.classList.remove('show'));
 // ---------------- DASHBOARD ----------------
 async function cargarDashboard() {
   const periodo = new Date().toISOString().slice(0,7);
+  const nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const hoy = new Date();
+  document.getElementById('d-mes-label').textContent = nombresMes[hoy.getMonth()] + ' ' + hoy.getFullYear();
   const [resumenData, ventasData] = await Promise.all([api('resumen',{periodo}), api('ventas')]);
   if (resumenData.ok) {
     const r = resumenData.resumen;
-    document.getElementById('d-ventas-mes').textContent = fmt(r.ventasBase + r.igvVentas);
+    document.getElementById('d-ventas-mes').textContent = fmt(r.ventasTotalReal);
+    document.getElementById('d-ventas-mes-2').textContent = fmt(r.ventasTotalReal);
     document.getElementById('d-compras-mes').textContent = fmt(r.comprasBase + r.igvCompras);
+    document.getElementById('d-compras-mes-2').textContent = fmt(r.comprasBase + r.igvCompras);
     document.getElementById('d-ganancia').textContent = fmt(r.ganancia);
-    document.getElementById('d-sunat').textContent = fmt(r.totalSunat);
+    document.getElementById('d-sunat').textContent = fmt(Math.abs(r.totalSunat));
+    const badge = document.getElementById('d-sunat-badge');
+    if (r.totalSunat > 0) { badge.textContent = 'A pagar'; badge.className = 'hs-badge neg'; }
+    else if (r.totalSunat < 0) { badge.textContent = 'A tu favor'; badge.className = 'hs-badge pos'; }
+    else { badge.textContent = 'Sin deuda'; badge.className = 'hs-badge neutral'; }
   }
   const bajo = PRODUCTOS.filter(p => p.stockActual <= 3).slice(0,8);
   const sb = document.getElementById('d-stock-bajo');
@@ -1447,17 +1569,45 @@ function llenarMeses(){
 }
 llenarMeses();
 document.getElementById('r-calcular').addEventListener('click', cargarResumen);
+function badgeEl(el, texto, clase){ el.textContent = texto; el.className = 'hs-badge ' + clase; }
 async function cargarResumen(){
-  const periodo=document.getElementById('r-mes').value;
+  const sel = document.getElementById('r-mes');
+  const periodo = sel.value;
   const data=await api('resumen',{periodo});
   if(!data.ok)return; const r=data.resumen;
-  document.getElementById('r-total').textContent=fmt(r.totalSunat);
-  document.getElementById('r-igv').textContent=fmt(r.igvAPagar);
-  document.getElementById('r-rer').textContent=fmt(r.rentaRer);
+  document.getElementById('r-periodo-label').textContent = sel.selectedOptions[0].textContent;
+
+  const totalSunat = r.totalSunat;
+  if (totalSunat > 0) {
+    document.getElementById('r-apagar').textContent = fmt(totalSunat);
+    badgeEl(document.getElementById('r-apagar-badge'), 'A pagar', 'neg');
+    document.getElementById('r-favor').textContent = fmt(0);
+    badgeEl(document.getElementById('r-favor-badge'), 'No aplica', 'neutral');
+    document.getElementById('r-hl-label').textContent = 'Impuesto por pagar';
+    document.getElementById('r-hl-value').textContent = fmt(totalSunat);
+    document.getElementById('r-hl-box').className = 'sc-highlight warn';
+  } else {
+    document.getElementById('r-apagar').textContent = fmt(0);
+    badgeEl(document.getElementById('r-apagar-badge'), 'Sin deuda', 'pos');
+    document.getElementById('r-favor').textContent = fmt(Math.abs(totalSunat));
+    badgeEl(document.getElementById('r-favor-badge'), totalSunat < 0 ? 'A tu favor' : 'No aplica', totalSunat < 0 ? 'pos' : 'neutral');
+    document.getElementById('r-hl-label').textContent = 'Saldo a favor / crédito fiscal';
+    document.getElementById('r-hl-value').textContent = fmt(Math.abs(totalSunat));
+    document.getElementById('r-hl-box').className = 'sc-highlight';
+  }
+  document.getElementById('r-rer').textContent = fmt(r.rentaRer);
+  document.getElementById('r-rer-2').textContent = fmt(r.rentaRer);
+  badgeEl(document.getElementById('r-rer-badge'), r.rentaRer > 0 ? 'Este periodo' : 'No aplica', r.rentaRer > 0 ? 'pos' : 'neutral');
+
+  document.getElementById('r-ventas-total').textContent = fmt(r.ventasBase + r.igvVentas);
   document.getElementById('r-vbase').textContent=fmt(r.ventasBase);
-  document.getElementById('r-cbase').textContent=fmt(r.comprasBase);
   document.getElementById('r-igvv').textContent=fmt(r.igvVentas);
+  document.getElementById('r-ventas-nota').textContent = r.ventasBase === 0 ? 'No hubo ventas con comprobante tributario en este periodo.' : '';
+
+  document.getElementById('r-compras-total').textContent = fmt(r.comprasBase + r.igvCompras);
+  document.getElementById('r-cbase').textContent=fmt(r.comprasBase);
   document.getElementById('r-igvc').textContent=fmt(r.igvCompras);
+
   document.getElementById('r-ganancia').textContent=fmt(r.ganancia);
 }
 
@@ -1466,8 +1616,6 @@ async function cargarCaja(){
   const data=await api('caja',{});
   if(!data.ok)return; const c=data.caja;
   document.getElementById('cj-total').textContent=fmt(c.totalDisponible);
-  document.getElementById('cj-efectivo-mini').textContent=fmt(c.efectivo);
-  document.getElementById('cj-yape-mini').textContent=fmt(c.yape);
   document.getElementById('cj-efectivo').textContent=fmt(c.efectivo);
   document.getElementById('cj-yape').textContent=fmt(c.yape);
 }
