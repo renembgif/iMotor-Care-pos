@@ -426,6 +426,7 @@ button{ cursor:pointer; }
     <a href="#ventas" class="nav-item" data-view="ventas"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 2.5h13a2 2 0 0 1 2 2v18l-2.1-1.4-2.1 1.4-2.1-1.4-2.1 1.4-2.1-1.4-2.1 1.4-2.1-1.4-2.1 1.4v-18a2 2 0 0 1 2-2z"/><path d="M8.3 8h7.4M8.3 11.5h7.4M8.3 15h4.4"/></svg></span> Ventas</a>
     <a href="#inventario" class="nav-item" data-view="inventario"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-4.7L21 8l-9 4.7L3 8z"/><path d="M3 8v8l9 4.7 9-4.7V8"/><path d="M12 12.7V21"/></svg></span> Inventario</a>
     <a href="#compras" class="nav-item" data-view="compras"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8V6a5.5 5.5 0 0 1 11 0v2"/><path d="M4.8 8h14.4l-1.1 12.2a1.5 1.5 0 0 1-1.5 1.3H7.4a1.5 1.5 0 0 1-1.5-1.3z"/></svg></span> Compras y gastos</a>
+    <a href="#caja" class="nav-item" data-view="caja"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="13" rx="2"/><path d="M2.5 10.5h19"/><circle cx="7" cy="14.5" r="1.3"/></svg></span> Caja</a>
     <a href="#conversiones" class="nav-item" data-view="conversiones"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12a9.5 9.5 0 0 1 16-6.9l2 1.9"/><path d="M20.5 3v4.5H16"/><path d="M21.5 12a9.5 9.5 0 0 1-16 6.9l-2-1.9"/><path d="M3.5 21v-4.5H8"/></svg></span> Conversiones</a>
     <a href="#deudores" class="nav-item" data-view="deudores"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 2.3h6a1 1 0 0 1 1 1V6H8V3.3a1 1 0 0 1 1-1z"/><path d="M8.3 11h7.4M8.3 14.3h7.4M8.3 17.6h4.4"/></svg></span> Deudores</a>
     <a href="#resumen" class="nav-item" data-view="resumen"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8.3h8M8 12h8M8 15.7h5"/></svg></span> Resumen SUNAT</a>
@@ -608,11 +609,27 @@ button{ cursor:pointer; }
             <input type="number" id="cg-tc" placeholder="Tipo de cambio" disabled style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
           </div>
           <div class="cliente-row"><input type="number" id="cg-monto" placeholder="Monto (con IGV)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></div>
+          <div class="cliente-row"><select id="cg-metodopago" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"><option>Efectivo</option><option>Yape</option><option>Transferencia</option></select></div>
           <button class="btn-primary" id="cg-guardar" style="width:auto;padding:10px 20px;">Registrar</button>
           <div class="sale-msg" id="cg-msg"></div>
         </div>
       </div>
       <div class="panel"><div class="panel-head">Historial reciente</div><div class="panel-body" style="padding:0;" id="cg-historial"><div class="empty-note">Cargando…</div></div></div>
+    </section>
+
+    <!-- ---------- CAJA ---------- -->
+    <section class="view" id="view-caja">
+      <div class="topline"><h2>Caja</h2></div>
+      <div class="empty-note" style="margin-bottom:10px;font-size:12px;">Saldo acumulado por medio de pago: todo lo vendido menos todo lo comprado/gastado en ese medio (Transferencia no se cuenta como caja física).</div>
+      <div class="declaracion-box">
+        <div class="dl">Total disponible</div>
+        <div class="dv" id="cj-total">S/ 0.00</div>
+        <div class="declaracion-sub"><span>Efectivo: <b id="cj-efectivo-mini">S/0</b></span><span>Yape: <b id="cj-yape-mini">S/0</b></span></div>
+      </div>
+      <div class="grid-cards" style="margin-top:14px;">
+        <div class="card"><div class="label">Efectivo</div><div class="value" id="cj-efectivo">—</div></div>
+        <div class="card"><div class="label">Yape</div><div class="value" id="cj-yape">—</div></div>
+      </div>
     </section>
 
     <!-- ---------- CONVERSIONES ---------- -->
@@ -677,6 +694,7 @@ button{ cursor:pointer; }
   <button class="mas-item" data-view="ventas">&#128179; Ventas</button>
   <button class="mas-item" data-view="clientes">&#128100; Clientes y vehículos</button>
   <button class="mas-item" data-view="compras">&#8595; Compras y gastos</button>
+  <button class="mas-item" data-view="caja">&#128176; Caja</button>
   <button class="mas-item" data-view="conversiones">&#8635; Conversiones</button>
   <button class="mas-item" data-view="deudores">&#128203; Deudores</button>
   <button class="mas-item" data-view="resumen">&#8801; Resumen SUNAT</button>
@@ -911,6 +929,7 @@ function goView(name) {
   if (name === 'ventas') cargarVentasHistorial();
   if (name === 'compras') cargarHistorialCompras();
   if (name === 'resumen') cargarResumen();
+  if (name === 'caja') cargarCaja();
   if (name === 'cotizaciones') cargarHistorialCotizaciones();
   if (name === 'conversiones') cargarHistorialConversiones();
   if (name === 'deudores') cargarDeudores();
@@ -1379,7 +1398,8 @@ document.getElementById('cg-guardar').addEventListener('click', async () => {
   const body={ codigo: productoCompraElegido?productoCompraElegido.codigo:'', cantidad: document.getElementById('cg-cantidad').value||0,
     descripcion: document.getElementById('cg-descripcion').value, proveedor: document.getElementById('cg-proveedor').value,
     comprobante: document.getElementById('cg-comprobante').value, moneda: document.getElementById('cg-moneda').value,
-    tipoCambio: document.getElementById('cg-tc').value||1, montoOriginal: tipoMovimiento==='Bonificación'?0:monto, tipoMovimiento };
+    tipoCambio: document.getElementById('cg-tc').value||1, montoOriginal: tipoMovimiento==='Bonificación'?0:monto, tipoMovimiento,
+    metodoPago: document.getElementById('cg-metodopago').value };
   try {
     const d = await api(null,{},'POST',{accion:'compra',...body});
     if(!d.ok) throw new Error(d.error);
@@ -1439,6 +1459,17 @@ async function cargarResumen(){
   document.getElementById('r-igvv').textContent=fmt(r.igvVentas);
   document.getElementById('r-igvc').textContent=fmt(r.igvCompras);
   document.getElementById('r-ganancia').textContent=fmt(r.ganancia);
+}
+
+// ---------------- CAJA ----------------
+async function cargarCaja(){
+  const data=await api('caja',{});
+  if(!data.ok)return; const c=data.caja;
+  document.getElementById('cj-total').textContent=fmt(c.totalDisponible);
+  document.getElementById('cj-efectivo-mini').textContent=fmt(c.efectivo);
+  document.getElementById('cj-yape-mini').textContent=fmt(c.yape);
+  document.getElementById('cj-efectivo').textContent=fmt(c.efectivo);
+  document.getElementById('cj-yape').textContent=fmt(c.yape);
 }
 
 // ---------------- CLIENTES Y VEHÍCULOS ----------------
