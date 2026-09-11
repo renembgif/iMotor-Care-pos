@@ -1353,8 +1353,8 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
   doc.setTextColor(...JADE_BRIGHT); doc.setFontSize(16);
   doc.text('S/ ' + total.toFixed(2), colSubR, ty + 3, { align: 'right' });
 
-  // ---------- Pie: imagen única con el diseño final (métodos de pago, observaciones, redes y logo) ----------
-  let fy = ty + 30;
+  // ---------- Pie: imagen única con el diseño final, pegada al fondo real de la hoja (bloques 5+6+7 = 69mm) ----------
+  let fy = pageH - margin - footerImgH;
   try { doc.addImage('data:image/png;base64,' + FOOTER_IMG_B64, 'PNG', margin, fy, footerImgW, footerImgH); } catch (e) {}
 
   doc.save('Cotizacion_' + numero + '.pdf');
