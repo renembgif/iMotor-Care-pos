@@ -1002,7 +1002,10 @@ function abrirModalProducto(p) {
 document.getElementById('edit-modal-save').addEventListener('click', async () => {
   if (!editModalContext) return;
   const btn = document.getElementById('edit-modal-save');
-  btn.disabled = true;
+  if (btn.disabled) return; // evita doble clic → doble actualización
+  const textoOriginal = 'Guardar cambios';
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  editModalMsg.textContent = ''; editModalMsg.className = 'sale-msg';
   try {
     let body = { fila: editModalContext.fila };
     if (editModalContext.tipo === 'venta') {
@@ -1032,16 +1035,25 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
         precioCompra: document.getElementById('em-preciocompra').value,
         precioVenta: document.getElementById('em-precioventa').value };
     }
+    // No asumir éxito solo por haber hecho el fetch: solo se cierra si el backend confirma d.ok === true
     const d = await api(null, {}, 'POST', body);
-    if (!d.ok) throw new Error(d.error || 'No se pudo guardar');
-    editModalOverlay.classList.remove('show');
-    if (editModalContext.tipo === 'venta') { await cargarVentasHistorial(); await cargarProductos(); }
-    if (editModalContext.tipo === 'compra') { await cargarHistorialCompras(); await cargarProductos(); }
-    if (editModalContext.tipo === 'producto') { await cargarProductos(); }
+    if (!d || !d.ok) throw new Error((d && d.error) || 'No se pudieron guardar los cambios.');
+
+    editModalMsg.textContent = '✓ Cambios guardados correctamente'; editModalMsg.className = 'sale-msg ok';
+    const tipoGuardado = editModalContext.tipo;
+    // Refresca la fila/lista correspondiente antes de cerrar, para que ya se vea el dato corregido
+    if (tipoGuardado === 'venta') { await cargarVentasHistorial(); await cargarProductos(); }
+    if (tipoGuardado === 'compra') { await cargarHistorialCompras(); await cargarProductos(); }
+    if (tipoGuardado === 'producto') { await cargarProductos(); }
+
+    setTimeout(() => { editModalOverlay.classList.remove('show'); }, 700);
   } catch (err) {
-    editModalMsg.textContent = '✗ ' + err.message; editModalMsg.className = 'sale-msg err';
+    // NO cerrar el modal: se mantienen todos los datos que el usuario estaba editando
+    editModalMsg.textContent = '✕ No se pudieron guardar los cambios. Inténtalo nuevamente.';
+    editModalMsg.className = 'sale-msg err';
+    console.error('[EDIT-MODAL] Error al guardar:', err);
   } finally {
-    btn.disabled = false;
+    btn.disabled = false; btn.textContent = textoOriginal;
   }
 });
 
@@ -1190,15 +1202,28 @@ document.getElementById('confirmar-venta').addEventListener('click', async () =>
   const metodoPago = document.getElementById('v-metodopago').value;
   const estadoPago = document.getElementById('v-estadopago').value;
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
+  console.log(`[VENTA] INICIO — productos enviados: ${cart.length}`, cart.map(c=>c.codigo));
   try {
-    for (const item of cart) {
-      const d = await api(null,{},'POST',{accion:'venta',codigo:item.codigo,cantidad:item.cantidad,descuentoUnit:item.descuento||0,cliente,tipoComprobante,metodoPago,estadoPago});
-      if (!d.ok) throw new Error(d.error);
+    for (let i = 0; i < cart.length; i++) {
+      const item = cart[i];
+      const t0 = performance.now();
+      console.log(`[VENTA] PRODUCTO ${i+1}/${cart.length} (${item.codigo}) → petición enviada…`);
+      try {
+        const d = await api(null,{},'POST',{accion:'venta',codigo:item.codigo,cantidad:item.cantidad,descuentoUnit:item.descuento||0,cliente,tipoComprobante,metodoPago,estadoPago});
+        const ms = Math.round(performance.now()-t0);
+        console.log(`[VENTA] PRODUCTO ${i+1}/${cart.length} (${item.codigo}) → respuesta en ${ms}ms:`, d);
+        if (!d.ok) throw new Error(d.error);
+      } catch (errItem) {
+        const ms = Math.round(performance.now()-t0);
+        console.error(`[VENTA] PRODUCTO ${i+1}/${cart.length} (${item.codigo}) → ERROR tras ${ms}ms:`, errItem.name, errItem.message, '| navigator.onLine =', navigator.onLine);
+        throw errItem;
+      }
     }
+    console.log('[VENTA] FIN — todos los productos registrados correctamente');
     msg.textContent='✓ Venta registrada'; msg.className='sale-msg ok';
     cart=[]; renderCarrito(); document.getElementById('v-cliente').value='';
     await cargarProductos();
-  } catch(err){ msg.textContent=err.message; msg.className='sale-msg err'; }
+  } catch(err){ console.error('[VENTA] Venta detenida por error:', err); msg.textContent=err.message; msg.className='sale-msg err'; }
   finally { btn.disabled=false; btn.textContent='Confirmar venta'; }
 });
 
