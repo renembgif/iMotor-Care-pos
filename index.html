@@ -1860,7 +1860,7 @@ document.getElementById('cg-guardar').addEventListener('click', async () => {
     await cargarProductos(); cargarHistorialCompras();
   } catch(err){ msg.textContent=err.message; msg.className='sale-msg err'; }
 });
-async // ---------------- CONCILIACIÓN SUNAT (agrupa Compras por Llave normalizada) ----------------
+// ---------------- CONCILIACIÓN SUNAT (agrupa Compras por Llave normalizada) ----------------
 function renderConciliacionSunat(compras){
   const cont = document.getElementById('cg-conciliacion');
   if (!cont) return;
