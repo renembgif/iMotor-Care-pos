@@ -464,6 +464,35 @@ button{ cursor:pointer; }
   body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 }
 @page{ margin:8mm; size:auto; }
+
+#cotventa-overlay .field input,
+#cotventa-overlay .field select{ background:#fff; color:var(--text); border-color:var(--line); width:100%; padding:11px 12px; border-radius:8px; font-size:14px; border-width:1.5px; border-style:solid; }
+#cotventa-overlay .field input:focus,
+#cotventa-overlay .field select:focus{ border-color:var(--jade); box-shadow:0 0 0 3px rgba(0,217,163,.15); }
+#cotventa-overlay .field label{ color:var(--jade-deep); }
+.gv-item{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line);}
+.gv-item small{display:block;color:var(--text-dim);font-size:11.5px;}
+.gv-total{display:flex;justify-content:space-between;font-weight:800;padding:9px 0 4px;font-size:14px;}
+.gv-aviso{background:#fff7e0;border:1px solid #f0d58a;border-radius:8px;padding:8px 10px;font-size:12px;margin:8px 0;color:#7a5b00;}
+#np-codigo-hint{display:block;margin-top:4px;font-size:12px;}
+/* v16 · cantidad editable con decimales, filtros de fecha, autocompletado */
+.filtro-fecha{margin:0 0 10px;}
+.filtro-fecha .tabs-mini{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.filtro-rango{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:12.5px;color:var(--text-dim);margin-bottom:8px;}
+.filtro-rango input{padding:7px 9px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;}
+.filtro-resumen{font-size:12.5px;color:var(--text-dim);margin:0 0 8px;font-weight:600;}
+.panel > .filtro-fecha{padding:12px 14px 0;margin:0;}
+.panel > .filtro-resumen{padding:0 14px;}
+.ac-wrap{position:relative;flex:1;min-width:0;}
+.ac-wrap > input{width:100%;box-sizing:border-box;}
+.ac-list{position:absolute;left:0;right:0;top:100%;z-index:30;margin-top:2px;background:#fff;border:1.5px solid var(--line);border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.14);max-height:260px;overflow:auto;display:none;}
+.ac-list.show{display:block;}
+.ac-list .result-item.sel,.ac-list .result-item:hover{background:#eefbfa;}
+.chk-mantener{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--text-dim);margin:2px 0 10px;cursor:pointer;}
+.det-precio{font-size:11.5px;color:var(--text-dim);}
+.li-qty input.qty-edit{width:58px;text-align:center;font-weight:700;border:1.5px solid var(--line);border-radius:6px;padding:6px 2px;background:#fff;color:inherit;}
+.li-qty input.qty-edit:focus{outline:2px solid var(--jade,#00cabe);}
+.li-name small b{color:var(--jade-deep,#0a8f88);}
 </style>
 </head>
 <body>
@@ -515,7 +544,7 @@ button{ cursor:pointer; }
   <main class="main">
     <!-- ---------- DASHBOARD ---------- -->
     <section class="view active" id="view-dashboard">
-      <div class="topline"><h2>Inicio</h2><span class="caja-pill" id="estado-conexion"><span class="dot"></span> Conectando…</span></div>
+      <div class="topline"><h2>Inicio</h2><span class="caja-pill" id="estado-conexion"><span class="dot"></span> Conectando…</span><button type="button" class="btn-sm" id="btn-refrescar" title="Vuelve a leer todo desde Google Sheets" style="margin-left:8px;">↻ Actualizar</button></div>
 
       <div class="hero-band">
         <div class="hero-title"><div class="ht-label" id="d-mes-label">Este mes</div><div class="ht-sub">Resumen del negocio</div></div>
@@ -575,6 +604,10 @@ button{ cursor:pointer; }
             <div class="panel-head">Detalle de venta</div>
             <div class="panel-body" style="padding:8px 18px;" id="venta-items"><div class="empty-note">Agrega productos para empezar</div></div>
           </div>
+          <div class="cliente-row" style="align-items:center;">
+            <label for="v-fecha" style="font-size:12.5px;font-weight:700;color:var(--text-dim);white-space:nowrap;">Fecha de la venta</label>
+            <input type="date" id="v-fecha" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+          </div>
           <div class="cliente-row">
             <input type="text" id="v-cliente" placeholder="Cliente / Mecánico" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
           </div>
@@ -625,7 +658,7 @@ button{ cursor:pointer; }
         </div>
       </div>
       <div class="empty-note" style="margin:14px 0 8px;font-size:12px;">Las cotizaciones no descuentan stock.</div>
-      <div class="panel"><div class="panel-head">Historial de cotizaciones</div><div class="panel-body" style="padding:0;" id="cot-historial"><div class="empty-note">Cargando…</div></div></div>
+      <div class="panel"><div class="panel-head">Historial de cotizaciones</div><div class="filtro-fecha" id="cot-filtro"></div><div class="filtro-resumen" id="cot-resumen"></div><div class="panel-body" style="padding:0;" id="cot-historial"><div class="empty-note">Cargando…</div></div></div>
     </section>
 
     <!-- ---------- CLIENTES Y VEHÍCULOS ---------- -->
@@ -674,12 +707,14 @@ button{ cursor:pointer; }
     <!-- ---------- VENTAS (historial) ---------- -->
     <section class="view" id="view-ventas">
       <div class="topline"><h2>Ventas</h2></div>
+      <div class="filtro-fecha" id="vh-filtro"></div>
+      <div class="filtro-resumen" id="vh-resumen"></div>
       <div class="panel"><div class="panel-body" style="padding:0;" id="vh-list"><div class="empty-note">Cargando…</div></div></div>
     </section>
 
     <!-- ---------- INVENTARIO ---------- -->
     <section class="view" id="view-inventario">
-      <div class="topline"><h2>Inventario</h2><button class="btn-primary" id="inv-nuevo-btn" style="width:auto;padding:9px 16px;">+ Nuevo producto</button></div>
+      <div class="topline"><h2>Inventario</h2><span style="display:flex;gap:8px;"><button type="button" class="btn-sm" id="btn-refrescar-inv" title="Vuelve a leer todo desde Google Sheets">↻ Actualizar</button><button class="btn-primary" id="inv-nuevo-btn" style="width:auto;padding:9px 16px;">+ Nuevo producto</button></span></div>
       <div class="search-box"><input type="text" id="inv-search" placeholder="Buscar producto…" autocomplete="off"></div>
       <div class="panel">
         <div class="panel-body" style="padding:0;">
@@ -717,7 +752,7 @@ button{ cursor:pointer; }
           </div>
           <div class="cliente-row" id="cg-docrelacionado-row" style="display:none;"><input type="text" id="cg-docrelacionado" placeholder="Documento relacionado (factura que corrige)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></div>
           <div class="cliente-row">
-            <input type="text" id="cg-proveedor" placeholder="Proveedor" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+            <div class="ac-wrap"><input type="text" id="cg-proveedor" placeholder="Proveedor (escribe para buscar)" autocomplete="off" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"><div class="ac-list search-results" id="cg-prov-results"></div></div>
             <input type="text" id="cg-comprobante" placeholder="N° comprobante (ej. F532-0071772)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
           </div>
           <div class="cliente-row">
@@ -726,12 +761,12 @@ button{ cursor:pointer; }
           </div>
           <div class="cliente-row" id="cg-tcsunat-row" style="display:none;"><input type="number" step="0.001" id="cg-tcsunat" placeholder="TC SUNAT (opcional, del comprobante en dólares)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></div>
           <div class="cliente-row"><input type="number" id="cg-monto" placeholder="Monto (con IGV)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></div>
+          <label class="chk-mantener"><input type="checkbox" id="cg-mantener" checked> Mantener fecha, proveedor, comprobante y moneda para la siguiente compra</label>
           <button class="btn-primary" id="cg-guardar" style="width:auto;padding:10px 20px;">Registrar</button>
           <div class="sale-msg" id="cg-msg"></div>
         </div>
       </div>
-      <div class="panel"><div class="panel-head">Conciliación SUNAT</div><div class="panel-body" style="padding:0;" id="cg-conciliacion"><div class="empty-note">Cargando…</div></div></div>
-      <div class="panel"><div class="panel-head">Historial reciente</div><div class="panel-body" style="padding:0;" id="cg-historial"><div class="empty-note">Cargando…</div></div></div>
+      <div class="panel"><div class="panel-head">Historial reciente</div><div class="filtro-fecha" id="cg-filtro"></div><div class="filtro-resumen" id="cg-resumen"></div><div class="panel-body" style="padding:0;" id="cg-historial"><div class="empty-note">Cargando…</div></div></div>
     </section>
 
     <!-- ---------- CAJA ---------- -->
@@ -817,7 +852,7 @@ button{ cursor:pointer; }
           <div class="sale-msg" id="cv-msg"></div>
         </div>
       </div>
-      <div class="panel"><div class="panel-head">Historial</div><div class="panel-body" style="padding:0;" id="cv-historial"><div class="empty-note">Cargando…</div></div></div>
+      <div class="panel"><div class="panel-head">Historial</div><div class="filtro-fecha" id="cv-filtro"></div><div class="filtro-resumen" id="cv-resumen"></div><div class="panel-body" style="padding:0;" id="cv-historial"><div class="empty-note">Cargando…</div></div></div>
     </section>
 
     <!-- ---------- DEUDORES ---------- -->
@@ -882,6 +917,9 @@ button{ cursor:pointer; }
           <div class="sc-note">Este indicador no representa necesariamente la ganancia real del negocio, ya que las compras pueden incluir mercadería que permanece en inventario.</div>
         </div>
       </div>
+      <div class="panel" style="margin-top:14px;"><div class="panel-head" id="cg-conc-titulo">Conciliación SUNAT</div>
+        <div class="filtro-resumen" id="cg-conc-resumen" style="padding:10px 14px 0;">Usa el mes elegido arriba.</div>
+        <div class="panel-body" style="padding:0;" id="cg-conciliacion"><div class="empty-note">Cargando…</div></div></div>
     </section>
   </main>
 </div>
@@ -938,6 +976,15 @@ button{ cursor:pointer; }
   </div>
 </div>
 
+<div id="cotventa-overlay" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head"><span id="gv-titulo">Generar venta</span><button type="button" class="modal-x" id="gv-cerrar">&times;</button></div>
+    <div id="gv-cuerpo"></div>
+    <div class="sale-msg" id="gv-msg"></div>
+    <button class="btn-primary" id="gv-confirmar" style="margin-top:6px;">Confirmar venta</button>
+    <button class="btn-primary" id="gv-sticker" style="margin-top:8px;display:none;background:transparent;color:var(--jade-deep);border:1.5px solid var(--jade);">Registrar servicio / sticker</button>
+  </div>
+</div>
 <div id="edit-modal-overlay" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-head"><span id="edit-modal-title">Editar</span><button type="button" class="modal-x" id="edit-modal-close">&times;</button></div>
@@ -951,7 +998,7 @@ button{ cursor:pointer; }
   <div class="modal-box">
     <div class="modal-head"><span>Nuevo producto</span><button type="button" class="modal-x" id="nuevo-prod-close">&times;</button></div>
     <div id="nuevo-prod-body">
-      <div class="field"><label>Código</label><input type="text" id="np-codigo"></div>
+      <div class="field"><label>Código</label><input type="text" id="np-codigo" autocomplete="off"><small id="np-codigo-hint"></small></div>
       <div class="field"><label>Tipo</label><select id="np-tipo"><option value="Producto">Producto</option><option value="Servicio">Servicio</option></select></div>
       <div class="field"><label>Producto o servicio</label><input type="text" id="np-nombre"></div>
       <div class="field"><label>Ubicación</label><input type="text" id="np-ubicacion"></div>
@@ -982,8 +1029,19 @@ document.getElementById('login-logo').src = 'data:image/png;base64,' + WEB_LOGO_
 
 function fmt(n){ return 'S/ ' + Number(n||0).toFixed(2); }
 function esc(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
+// Fechas en HORA LOCAL (toISOString() usa UTC: después de las 7 pm en Perú devolvía el día siguiente).
+function isoLocal(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function hoyISO(){ return isoLocal(new Date()); }
+// Números: acepta coma o punto decimal ("0,5" = "0.5"). Devuelve NaN si no es número.
+function numIn(v){ const t=String(v==null?'':v).trim().replace(',','.'); if(t==='') return NaN; const n=Number(t); return isFinite(n)?n:NaN; }
+function redQty(n){ return Math.round(Number(n)*1000)/1000; }      // cantidades: hasta 3 decimales
+function fmtQty(n){ return String(redQty(Number(n)||0)); }         // 0.5 -> "0.5", 2 -> "2"
+function round2(n){ return Math.round(Number(n)*100)/100; }
+// La hoja guarda la moneda como "Dólares" (con tilde); el formulario usa "Dolares". Esta comprobación acepta ambas.
+function esDol(m){ return /^d[oó]lares?$/i.test(String(m||'').trim()); }
 
 let PRODUCTOS = [];
+let ULT_PRODUCTOS = 0;
 let VENTAS_HIST = [];
 let COMPRAS_HIST = [];
 
@@ -1011,13 +1069,15 @@ function listaProductosDatalist() {
 }
 
 function abrirModalVenta(v) {
-  editModalContext = { tipo: 'venta', fila: v.fila };
+  editModalContext = { tipo: 'venta', fila: v.fila, huella: v.huella };
   editModalTitle.textContent = 'Editar venta';
   editModalMsg.textContent = '';
   editModalBody.innerHTML =
+    `<div class="field"><label>Fecha de la venta</label><input type="date" id="em-fecha" max="${hoyISO()}" value="${esc(v.fecha ? isoLocal(new Date(v.fecha)) : '')}"></div>` +
     `<div class="field"><label>Código de producto</label><input type="text" id="em-codigo" value="${esc(v.codigo)}" list="em-productos-list">${listaProductosDatalist()}</div>` +
-    campoNumero('em-cantidad', 'Cantidad', v.cantidad, '1') +
-    campoNumero('em-descuento', 'Descuento unitario (S/)', v.descuentoUnit || 0) +
+    campoNumero('em-cantidad', 'Cantidad (admite decimales: 0.5, 1.25…)', v.cantidad, 'any') +
+    campoNumero('em-descuento', 'Descuento unitario (S/) — rebaja al cliente, 0 o más', v.descuentoUnit || 0) +
+    campoNumero('em-ajuste', 'Ajuste de precio unitario (S/) — + sube / − baja', v.ajusteUnit || 0) +
     campoTexto('em-cliente', 'Cliente / Mecánico', v.cliente) +
     campoSelect('em-estadopago', 'Estado de pago', ['Cobrado', 'Pendiente', 'Anulado'], v.estadoPago) +
     campoSelect('em-comprobante', 'Tipo de comprobante', ['Nota de Venta / Sin Comprobante', 'Boleta', 'Factura'], v.tipoComprobante) +
@@ -1025,10 +1085,10 @@ function abrirModalVenta(v) {
   editModalOverlay.classList.add('show');
 }
 function abrirModalCompra(c) {
-  editModalContext = { tipo: 'compra', fila: c.fila };
+  editModalContext = { tipo: 'compra', fila: c.fila, huella: c.huella };
   editModalTitle.textContent = 'Editar compra / gasto';
   editModalMsg.textContent = '';
-  const fechaISO = c.fecha ? new Date(c.fecha).toISOString().slice(0,10) : '';
+  const fechaISO = c.fecha ? isoLocal(new Date(c.fecha)) : '';
   editModalBody.innerHTML =
     `<div class="field"><label>Fecha</label><input type="date" id="em-fecha" value="${esc(fechaISO)}"></div>` +
     `<div class="field"><label>Código de producto (vacío si es un gasto)</label><input type="text" id="em-codigo" value="${esc(c.codigo || '')}" list="em-productos-list">${listaProductosDatalist()}</div>` +
@@ -1039,15 +1099,29 @@ function abrirModalCompra(c) {
     campoSelect('em-tipodoc', 'Tipo de Documento', ['Factura', 'Nota de Crédito'], c.tipoDocumento || 'Factura') +
     campoTexto('em-docrelacionado', 'Documento relacionado (solo Nota de Crédito)', c.documentoRelacionado) +
     campoTexto('em-comprobante', 'N° de comprobante', c.comprobante) +
-    campoSelect('em-moneda', 'Moneda', ['Soles', 'Dolares'], c.moneda || 'Soles') +
+    campoSelect('em-moneda', 'Moneda', ['Soles', 'Dolares'], esDol(c.moneda) ? 'Dolares' : 'Soles') +
     campoNumero('em-tc', 'Tipo de cambio comercial (si es Dólares)', c.tipoCambio || 1) +
     campoNumero('em-tcsunat', 'TC SUNAT (si es Dólares)', c.tcSunat || '') +
     campoNumero('em-monto', 'Monto original', c.montoOriginal) +
     campoSelect('em-tipomov', 'Tipo de movimiento', ['Compra', 'Bonificación', 'Gasto', 'Anulado'], c.tipoMovimiento);
   editModalOverlay.classList.add('show');
 }
+// Editar una conversión: se corrige LA MISMA fila (no se crea otra), así el Kardex recalcula el stock sin movimientos duplicados.
+function abrirModalConversion(c) {
+  editModalContext = { tipo: 'conversion', fila: c.fila, huella: c.huella };
+  editModalTitle.textContent = 'Editar conversión';
+  editModalMsg.textContent = '';
+  editModalBody.innerHTML =
+    `<div class="field"><label>Fecha</label><input type="date" id="em-fecha" max="${hoyISO()}" value="${esc(c.fecha ? isoLocal(new Date(c.fecha)) : '')}"></div>` +
+    `<div class="field"><label>Código de envase</label><input type="text" id="em-envase" value="${esc(c.codigoEnvase)}" list="em-productos-list">${listaProductosDatalist()}</div>` +
+    campoNumero('em-envases', 'Envases abiertos', c.envasesAbiertos, 'any') +
+    campoNumero('em-litros', 'Litros por envase', c.litrosPorEnvase, 'any') +
+    `<div class="field"><label>Código a granel</label><input type="text" id="em-granel" value="${esc(c.codigoGranel)}" list="em-productos-list"></div>` +
+    `<div class="empty-note" style="font-size:12px;">Al guardar, el stock del envase y del granel se corrige solo; no se duplica el movimiento.</div>`;
+  editModalOverlay.classList.add('show');
+}
 function abrirModalProducto(p) {
-  editModalContext = { tipo: 'producto', fila: p.fila };
+  editModalContext = { tipo: 'producto', fila: p.fila, huella: p.huella };
   editModalTitle.textContent = 'Editar producto';
   editModalMsg.textContent = '';
   editModalBody.innerHTML =
@@ -1066,12 +1140,14 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
   btn.disabled = true; btn.textContent = 'Guardando…';
   editModalMsg.textContent = ''; editModalMsg.className = 'sale-msg';
   try {
-    let body = { fila: editModalContext.fila };
+    let body = { fila: editModalContext.fila, huella: editModalContext.huella };
     if (editModalContext.tipo === 'venta') {
       body = { ...body, accion: 'editarVenta',
+        fecha: document.getElementById('em-fecha').value,
         codigo: document.getElementById('em-codigo').value.trim(),
-        cantidad: document.getElementById('em-cantidad').value,
-        descuentoUnit: document.getElementById('em-descuento').value,
+        cantidad: numIn(document.getElementById('em-cantidad').value),
+        descuentoUnit: numIn(document.getElementById('em-descuento').value) || 0,
+        ajusteUnit: numIn(document.getElementById('em-ajuste').value) || 0,
         cliente: document.getElementById('em-cliente').value.trim(),
         estadoPago: document.getElementById('em-estadopago').value,
         tipoComprobante: document.getElementById('em-comprobante').value,
@@ -1091,6 +1167,13 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
         tcSunat: document.getElementById('em-tcsunat').value,
         montoOriginal: document.getElementById('em-monto').value,
         tipoMovimiento: document.getElementById('em-tipomov').value };
+    } else if (editModalContext.tipo === 'conversion') {
+      body = { ...body, accion: 'editarConversion',
+        fecha: document.getElementById('em-fecha').value,
+        codigoEnvase: document.getElementById('em-envase').value.trim(),
+        envasesAbiertos: numIn(document.getElementById('em-envases').value),
+        litrosPorEnvase: numIn(document.getElementById('em-litros').value),
+        codigoGranel: document.getElementById('em-granel').value.trim() };
     } else if (editModalContext.tipo === 'producto') {
       body = { ...body, accion: 'editarProducto',
         nombre: document.getElementById('em-nombre').value.trim(),
@@ -1108,51 +1191,63 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
     if (tipoGuardado === 'venta') { await cargarVentasHistorial(); await cargarProductos(); }
     if (tipoGuardado === 'compra') { await cargarHistorialCompras(); await cargarProductos(); }
     if (tipoGuardado === 'producto') { await cargarProductos(); }
+    if (tipoGuardado === 'conversion') { await cargarHistorialConversiones(); await cargarProductos(); }
 
     setTimeout(() => { editModalOverlay.classList.remove('show'); }, 700);
   } catch (err) {
     // NO cerrar el modal: se mantienen todos los datos que el usuario estaba editando
-    editModalMsg.textContent = '✕ No se pudieron guardar los cambios. Inténtalo nuevamente.';
+    editModalMsg.textContent = '✕ ' + (err && err.message ? err.message : 'No se pudieron guardar los cambios. Inténtalo nuevamente.');
     editModalMsg.className = 'sale-msg err';
+    if (err && /cambió en Google Sheets/.test(err.message)) refrescarTodo();   // la lista se actualiza sola para poder reintentar
     console.error('[EDIT-MODAL] Error al guardar:', err);
   } finally {
     btn.disabled = false; btn.textContent = textoOriginal;
   }
 });
 
-async function anularRegistro(tipo, fila) {
+async function anularRegistro(tipo, fila, huella) {
   if (!confirm('¿Anular este registro? Quedará marcado como Anulado y ya no contará para el Resumen SUNAT, pero no se borrará.')) return;
-  const d = await api(null, {}, 'POST', { accion: tipo === 'venta' ? 'anularVenta' : 'anularCompra', fila });
-  if (!d.ok) { alert('No se pudo anular: ' + d.error); return; }
+  const d = await api(null, {}, 'POST', { accion: tipo === 'venta' ? 'anularVenta' : 'anularCompra', fila, huella });
+  if (!d.ok) { alert('No se pudo anular: ' + d.error); if (/cambió en Google Sheets/.test(d.error)) refrescarTodo(); return; }
   if (tipo === 'venta') cargarVentasHistorial(); else cargarHistorialCompras();
 }
-async function eliminarRegistro(tipo, fila) {
+async function eliminarRegistro(tipo, fila, huella) {
   if (!confirm('¿Eliminar este registro por completo? Esta acción no se puede deshacer.')) return;
   const accion = tipo === 'venta' ? 'eliminarVenta' : (tipo === 'compra' ? 'eliminarCompra' : 'eliminarProducto');
-  const d = await api(null, {}, 'POST', { accion, fila });
-  if (!d.ok) { alert('No se pudo eliminar: ' + d.error); return; }
+  const d = await api(null, {}, 'POST', { accion, fila, huella });
+  if (!d.ok) { alert('No se pudo eliminar: ' + d.error); if (/cambió en Google Sheets/.test(d.error)) refrescarTodo(); return; }
   await cargarProductos();
   if (tipo === 'venta') cargarVentasHistorial();
   if (tipo === 'compra') cargarHistorialCompras();
 }
 
 let CLAVE = '';
+// Si Apps Script falla con una excepción no controlada, Google responde una página HTML sin cabeceras CORS y el
+// navegador solo dice "Failed to fetch". El backend v16 ya devuelve siempre JSON con el motivo real; aquí se
+// traduce cualquier fallo de red/HTML a un mensaje entendible (sin ocultar el detalle técnico).
 async function api(accion, params={}, metodo='GET', body=null) {
-  if (metodo === 'GET') {
-    const qs = new URLSearchParams({ accion, ...params }).toString();
-    const res = await fetch(`${API_URL}?${qs}`);
-    return res.json();
-  } else {
-    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion, clave: CLAVE, ...body }) });
-    return res.json();
+  let res;
+  try {
+    if (metodo === 'GET') {
+      const qs = new URLSearchParams({ accion, ...params, _t: Date.now() }).toString();   // _t evita respuestas en caché
+      res = await fetch(`${API_URL}?${qs}`, { cache: 'no-store' });
+    } else {
+      res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion, clave: CLAVE, ...body }) });
+    }
+  } catch (e) {
+    throw new Error('No se pudo conectar con el servidor de Google (' + (navigator.onLine ? 'Apps Script no respondió o falló' : 'sin internet') + '). Detalle: ' + e.message);
   }
+  const txt = await res.text();
+  try { return JSON.parse(txt); }
+  catch (e) { throw new Error('El servidor respondió algo que no es JSON (probable error de Apps Script; revisa "Ejecuciones" en script.google.com).'); }
 }
 
 async function cargarProductos() {
   try {
     const data = await api('productos');
     if (!data.ok) throw new Error(data.error);
-    PRODUCTOS = data.productos;
+    PRODUCTOS = data.productos; ULT_PRODUCTOS = Date.now(); ULT_REFRESCO = ULT_PRODUCTOS;
+    sincronizarCarritos();   // si cambió un precio en Google Sheets, el carrito abierto lo refleja
     const txt = `${PRODUCTOS.length} productos · Google Sheets`;
     document.getElementById('estado-conexion-side').textContent = txt;
     document.getElementById('estado-conexion').innerHTML = '<span class="dot"></span> ' + txt;
@@ -1163,8 +1258,60 @@ async function cargarProductos() {
   }
 }
 
+// ---------------- FILTRO POR FECHA / PERÍODO (componente reutilizable) ----------------
+// Solo controla QUÉ registros se muestran; no borra nada. El filtrado lo hace el backend (parámetros desde/hasta).
+const FILTRO_TIPOS = [['hoy','Hoy'],['ayer','Ayer'],['semana','Esta semana'],['mes','Este mes'],['mesant','Mes anterior'],['rango','Rango'],['todo','Últimos 50']];
+function rangoFiltro(tipo, desdeC, hastaC){
+  const h = new Date(); h.setHours(12,0,0,0);
+  if (tipo==='hoy') return { desde:isoLocal(h), hasta:isoLocal(h) };
+  if (tipo==='ayer'){ const a=new Date(h); a.setDate(a.getDate()-1); return { desde:isoLocal(a), hasta:isoLocal(a) }; }
+  if (tipo==='semana'){ const dow=(h.getDay()+6)%7; const l=new Date(h); l.setDate(h.getDate()-dow); const d=new Date(l); d.setDate(l.getDate()+6); return { desde:isoLocal(l), hasta:isoLocal(d) }; }   // lunes a domingo
+  if (tipo==='mes') return { desde:isoLocal(new Date(h.getFullYear(),h.getMonth(),1,12)), hasta:isoLocal(new Date(h.getFullYear(),h.getMonth()+1,0,12)) };
+  if (tipo==='mesant') return { desde:isoLocal(new Date(h.getFullYear(),h.getMonth()-1,1,12)), hasta:isoLocal(new Date(h.getFullYear(),h.getMonth(),0,12)) };
+  if (tipo==='rango') return { desde:desdeC||'', hasta:hastaC||'' };
+  return { desde:'', hasta:'' };
+}
+function crearFiltroFecha(contId, alCambiar, tipoInicial){
+  const cont = document.getElementById(contId);
+  const estado = { tipo: tipoInicial||'mes', desde:'', hasta:'' };
+  function pintar(){
+    cont.innerHTML = `<div class="tabs-mini">${FILTRO_TIPOS.map(([k,l])=>`<button type="button" class="tab-mini ${estado.tipo===k?'active':''}" data-f="${k}">${l}</button>`).join('')}</div>` +
+      (estado.tipo==='rango' ? `<div class="filtro-rango"><label>Desde <input type="date" data-fr="desde" value="${estado.desde}"></label><label>Hasta <input type="date" data-fr="hasta" value="${estado.hasta}"></label></div>` : '');
+    cont.querySelectorAll('[data-f]').forEach(b=>b.addEventListener('click',()=>{
+      estado.tipo = b.dataset.f;
+      if (estado.tipo==='rango' && !estado.desde && !estado.hasta) { estado.desde = estado.hasta = hoyISO(); }
+      pintar(); alCambiar();
+    }));
+    cont.querySelectorAll('[data-fr]').forEach(i=>i.addEventListener('change',()=>{ estado[i.dataset.fr]=i.value; alCambiar(); }));
+  }
+  pintar();
+  return { estado, params(){ const r=rangoFiltro(estado.tipo,estado.desde,estado.hasta); const p={}; if(r.desde) p.desde=r.desde; if(r.hasta) p.hasta=r.hasta; return p; } };
+}
+const FILTRO_VENTAS  = crearFiltroFecha('vh-filtro',  ()=>cargarVentasHistorial(),        'mes');
+const FILTRO_COMPRAS = crearFiltroFecha('cg-filtro',  ()=>cargarHistorialCompras(),       'mes');
+const FILTRO_CONV    = crearFiltroFecha('cv-filtro',  ()=>cargarHistorialConversiones(),  'mes');
+const FILTRO_COT     = crearFiltroFecha('cot-filtro', ()=>cargarHistorialCotizaciones(),  'mes');
+
+// ---------------- SINCRONIZACIÓN CON GOOGLE SHEETS ----------------
+// Web → Sheets: cada operación escribe de inmediato.  Sheets → Web: la web vuelve a LEER (no guarda copias viejas):
+//  · al abrir cada pantalla, · al volver a la pestaña/app después de editar Sheets, · con el botón ↻ Actualizar.
+// Nunca se sobrescribe nada al leer; y al editar/anular/eliminar, el backend comprueba que la fila siga siendo el mismo registro.
+let ULT_REFRESCO = 0;
+async function refrescarTodo(){
+  if (!CLAVE) return;
+  ULT_REFRESCO = Date.now();
+  await cargarProductos();
+  const v = document.querySelector('.view.active');
+  if (v) goView(v.id.replace('view-',''));
+}
+function refrescarSiViejo(seg){ if (CLAVE && Date.now()-ULT_REFRESCO > seg*1000) refrescarTodo(); }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState==='visible') refrescarSiViejo(20); });
+window.addEventListener('focus', () => refrescarSiViejo(20));
+['btn-refrescar','btn-refrescar-inv'].forEach(id => document.getElementById(id).addEventListener('click', refrescarTodo));
+
 // ---------------- NAVEGACIÓN ----------------
 function goView(name) {
+  if (['venta','inventario','compras','conversiones','cotizaciones'].includes(name) && CLAVE && Date.now()-ULT_PRODUCTOS > 30000) cargarProductos();   // precios/stock frescos si se editó Sheets
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
   document.querySelectorAll('.nav-item, .bn-item, .mas-item').forEach(el => el.classList.toggle('active', el.dataset.view === name));
@@ -1186,7 +1333,7 @@ document.addEventListener('click', () => masMenu.classList.remove('show'));
 
 // ---------------- DASHBOARD ----------------
 async function cargarDashboard() {
-  const periodo = new Date().toISOString().slice(0,7);
+  const periodo = hoyISO().slice(0,7);
   const nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const hoy = new Date();
   document.getElementById('d-mes-label').textContent = nombresMes[hoy.getMonth()] + ' ' + hoy.getFullYear();
@@ -1219,44 +1366,109 @@ async function cargarDashboard() {
 
 // ---------------- NUEVA VENTA ----------------
 let cart = [];
+// ---- Líneas del carrito (las usan Nueva venta y Cotizaciones) ----
+// Cantidad: admite decimales (0.25, 0.5, 1.5) y se puede escribir directamente.
+// Descuento = rebaja al cliente (siempre ≥ 0).  Ajuste de precio = modificación puntual del precio acordado (+ sube / − baja).
+// Ambos son POR UNIDAD:  precio final c/u = precio − descuento + ajuste;  importe de la línea = precio final × cantidad.
+function precioNeto(c){ return Math.max(0, round2((Number(c.precioVenta)||0) - (Number(c.descuento)||0) + (Number(c.ajuste)||0))); }
+function importeLinea(c){ return round2(precioNeto(c) * c.cantidad); }
+function totalLineas(items){ return round2(items.reduce((s,c)=>s+importeLinea(c),0)); }
+function lineasHTML(items){
+  return items.map(c=>{
+    const neto = precioNeto(c), cod = esc(c.codigo);
+    const cambia = Math.abs(neto - (Number(c.precioVenta)||0)) > 1e-9;
+    return `<div class="line-item"><div class="li-name">${esc(c.nombre)}<small>${fmt(c.precioVenta)} c/u${cambia?' → <b>'+fmt(neto)+' c/u</b>':''}</small>
+    <button type="button" class="li-discount-btn" data-desc="${cod}">${c.descuento?('Descuento: '+fmt(c.descuento)+' c/u ✎'):'+ Aplicar descuento'}</button>
+    <button type="button" class="li-discount-btn" data-ajuste="${cod}">${c.ajuste?('Ajuste: '+(c.ajuste>0?'+':'−')+fmt(Math.abs(c.ajuste))+' c/u ✎'):'± Ajuste de precio'}</button></div>
+    <div class="li-qty"><button data-codigo="${cod}" data-d="-1">−</button><input type="text" inputmode="decimal" class="qty-edit" data-qty="${cod}" value="${fmtQty(c.cantidad)}" aria-label="Cantidad"><button data-codigo="${cod}" data-d="1">+</button></div>
+    <div class="li-total">${fmt(importeLinea(c))}</div><button class="li-remove" data-codigo="${cod}" data-rm="1">&times;</button></div>`;
+  }).join('');
+}
+function enlazarLineas(cont, getCart, setCart, rerender){
+  const cambiar = (cod, fn) => { setCart(getCart().map(c=>c.codigo===cod?fn(c):c).filter(c=>c.cantidad>0)); rerender(); };
+  cont.querySelectorAll('button[data-d]').forEach(b=>b.addEventListener('click',()=>cambiar(b.dataset.codigo,c=>({...c,cantidad:redQty(c.cantidad+Number(b.dataset.d))}))));
+  cont.querySelectorAll('input[data-qty]').forEach(inp=>{
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); inp.blur(); } });
+    inp.addEventListener('change',()=>{
+      const n = numIn(inp.value);
+      if (!(n>0)) { rerender(); return; }                                     // valor inválido: se restaura el anterior
+      cambiar(inp.dataset.qty, c=>({...c,cantidad:redQty(n)}));
+    });
+  });
+  cont.querySelectorAll('button[data-rm]').forEach(b=>b.addEventListener('click',()=>{ setCart(getCart().filter(c=>c.codigo!==b.dataset.codigo)); rerender(); }));
+  cont.querySelectorAll('button[data-desc]').forEach(b=>b.addEventListener('click',()=>{
+    const item = getCart().find(c=>c.codigo===b.dataset.desc);
+    const val = prompt('Descuento por unidad (S/) para "'+item.nombre+'".\nEs una REBAJA al cliente (siempre 0 o más):', item.descuento||0);
+    if (val===null) return;
+    const n = Math.max(0, numIn(val)||0);
+    if ((Number(item.precioVenta)||0) - n + (item.ajuste||0) < 0) { alert('El descuento es mayor que el precio: el precio final no puede ser negativo.'); return; }
+    cambiar(item.codigo, c=>({...c,descuento:round2(n)}));
+  }));
+  cont.querySelectorAll('button[data-ajuste]').forEach(b=>b.addEventListener('click',()=>{
+    const item = getCart().find(c=>c.codigo===b.dataset.ajuste);
+    const val = prompt('Ajuste de precio por unidad (S/) para "'+item.nombre+'".\nModificación puntual del precio acordado: positivo SUBE (ej. 2), negativo BAJA (ej. -2):', item.ajuste||0);
+    if (val===null) return;
+    const n = numIn(val); const aj = isNaN(n) ? 0 : n;
+    if ((Number(item.precioVenta)||0) - (item.descuento||0) + aj < 0) { alert('Con ese ajuste el precio final quedaría negativo.'); return; }
+    cambiar(item.codigo, c=>({...c,ajuste:round2(aj)}));
+  }));
+}
+// Si en Google Sheets cambió un precio/stock mientras había productos en un carrito, el carrito se actualiza (el backend cobra siempre el precio del Sheet).
+function sincronizarCarritos(){
+  let cambio = false;
+  [cart, cotCart].forEach(arr => arr.forEach(c => {
+    const p = PRODUCTOS.find(x=>x.codigo===c.codigo); if(!p) return;
+    if (p.precioVenta !== c.precioVenta) { c.precioVenta = p.precioVenta; cambio = true; }
+    c.stockActual = p.stockActual;
+  }));
+  if (cambio) { renderCarrito(); renderCotCarrito(); }
+}
 document.getElementById('venta-search').addEventListener('input', (e) => {
   const q = e.target.value.trim().toLowerCase();
   const cont = document.getElementById('venta-results');
   if (!q) { cont.innerHTML=''; return; }
   const m = PRODUCTOS.filter(p=>p.nombre.toLowerCase().includes(q)||p.codigo.toLowerCase().includes(q)).slice(0,8);
-  cont.innerHTML = m.length ? m.map(p=>`<div class="result-item" data-codigo="${esc(p.codigo)}"><div><div class="ri-name">${esc(p.nombre)}</div><div class="ri-meta">${esc(p.codigo)} · stock: ${p.stockActual}</div></div><div class="ri-price">${fmt(p.precioVenta)}</div></div>`).join('') : '<div class="empty-note">Sin resultados</div>';
+  cont.innerHTML = m.length ? m.map(p=>`<div class="result-item" data-codigo="${esc(p.codigo)}"><div><div class="ri-name">${esc(p.nombre)}</div><div class="ri-meta">${esc(p.codigo)} · stock: ${fmtQty(p.stockActual)}</div></div><div class="ri-price">${fmt(p.precioVenta)}</div></div>`).join('') : '<div class="empty-note">Sin resultados</div>';
   cont.querySelectorAll('.result-item').forEach(el=>el.addEventListener('click',()=>{
     const p = PRODUCTOS.find(x=>x.codigo===el.dataset.codigo);
     const ex = cart.find(c=>c.codigo===p.codigo);
-    if(ex) ex.cantidad+=1; else cart.push({...p,cantidad:1,descuento:0});
+    if(ex) ex.cantidad=redQty(ex.cantidad+1); else cart.push({...p,cantidad:1,descuento:0,ajuste:0});
     renderCarrito(); e.target.value=''; cont.innerHTML='';
   }));
 });
 function renderCarrito(){
   const cont = document.getElementById('venta-items');
-  cont.innerHTML = cart.length ? cart.map(c=>{
-    const neto = Math.max(0, c.precioVenta - (c.descuento||0));
-    return `<div class="line-item"><div class="li-name">${esc(c.nombre)}<small>${fmt(c.precioVenta)} c/u</small>
-    <button type="button" class="li-discount-btn" data-desc="${esc(c.codigo)}">${c.descuento?('Descuento: '+fmt(c.descuento)+' c/u ✎'):'+ Aplicar descuento'}</button></div>
-    <div class="li-qty"><button data-codigo="${esc(c.codigo)}" data-d="-1">−</button><input type="text" value="${c.cantidad}" readonly><button data-codigo="${esc(c.codigo)}" data-d="1">+</button></div>
-    <div class="li-total">${fmt(neto*c.cantidad)}</div><button class="li-remove" data-codigo="${esc(c.codigo)}" data-rm="1">&times;</button></div>`;
-  }).join('') : '<div class="empty-note">Agrega productos para empezar</div>';
-  cont.querySelectorAll('button[data-d]').forEach(b=>b.addEventListener('click',()=>{
-    cart = cart.map(c=>c.codigo===b.dataset.codigo?{...c,cantidad:c.cantidad+Number(b.dataset.d)}:c).filter(c=>c.cantidad>0); renderCarrito();
-  }));
-  cont.querySelectorAll('button[data-rm]').forEach(b=>b.addEventListener('click',()=>{ cart=cart.filter(c=>c.codigo!==b.dataset.codigo); renderCarrito(); }));
-  cont.querySelectorAll('button[data-desc]').forEach(b=>b.addEventListener('click',()=>{
-    const item = cart.find(c=>c.codigo===b.dataset.desc);
-    const val = prompt('Descuento por unidad (S/) para "'+item.nombre+'":', item.descuento||0);
-    if (val===null) return;
-    const n = Math.max(0, Number(val)||0);
-    cart = cart.map(c=>c.codigo===b.dataset.desc?{...c,descuento:n}:c); renderCarrito();
-  }));
-  const total = cart.reduce((s,c)=>s+Math.max(0,c.precioVenta-(c.descuento||0))*c.cantidad,0);
+  cont.innerHTML = cart.length ? lineasHTML(cart) : '<div class="empty-note">Agrega productos para empezar</div>';
+  enlazarLineas(cont, ()=>cart, v=>{cart=v;}, renderCarrito);
+  const total = totalLineas(cart);
   document.getElementById('v-subtotal').textContent = fmt(total);
   document.getElementById('v-igv').textContent = fmt(total-total/1.18);
   document.getElementById('v-total').textContent = fmt(total);
   document.getElementById('confirmar-venta').disabled = cart.length===0;
+}
+// Fecha de la venta: por defecto hoy; se puede elegir un día anterior (venta que no se pudo registrar en su momento).
+function iniciarFechaVenta(){ const f=document.getElementById('v-fecha'); f.max=hoyISO(); f.value=hoyISO(); }
+iniciarFechaVenta();
+
+// ÚNICA función que registra una venta (Nueva venta y "Generar venta" desde una cotización usan esta misma).
+// Envía cada producto al backend con la lógica de siempre; devuelve qué se registró y el error, si lo hubo.
+async function registrarVentaDesdeItems(items, datos){
+  const registrados = []; let error = null;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    try {
+      const d = await api(null,{},'POST',{accion:'venta',codigo:item.codigo,cantidad:item.cantidad,descuentoUnit:item.descuento||0,ajusteUnit:item.ajuste||0,cliente:datos.cliente,tipoComprobante:datos.tipoComprobante,metodoPago:datos.metodoPago,estadoPago:datos.estadoPago,fecha:datos.fecha});
+      console.log(`[VENTA] ${i+1}/${items.length} (${item.codigo}) →`, d);
+      if (!d.ok) throw new Error(d.error);
+      registrados.push(item.codigo);
+    } catch (e) { console.warn(`[VENTA] ${i+1}/${items.length} (${item.codigo}) → ERROR:`, e.message); error = e; break; }
+  }
+  return { registrados, error };
+}
+// Comprueba stock con los datos frescos del Sheet ANTES de registrar nada (evita ventas a medias por falta de stock).
+function faltantesDeStock(items){
+  return items.filter(c => { const p = PRODUCTOS.find(x=>x.codigo===c.codigo); return p && p.tipo!=='Servicio' && Number(p.stockActual) + 1e-9 < c.cantidad; })
+    .map(c => { const p = PRODUCTOS.find(x=>x.codigo===c.codigo); return `${p.nombre} (pides ${fmtQty(c.cantidad)}, hay ${fmtQty(p.stockActual)})`; });
 }
 document.getElementById('confirmar-venta').addEventListener('click', async () => {
   const btn = document.getElementById('confirmar-venta'); const msg = document.getElementById('venta-msg');
@@ -1264,30 +1476,29 @@ document.getElementById('confirmar-venta').addEventListener('click', async () =>
   const tipoComprobante = document.getElementById('v-comprobante').value;
   const metodoPago = document.getElementById('v-metodopago').value;
   const estadoPago = document.getElementById('v-estadopago').value;
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';
-  console.log(`[VENTA] INICIO — productos enviados: ${cart.length}`, cart.map(c=>c.codigo));
+  const fecha = document.getElementById('v-fecha').value || hoyISO();
+  const setMsg = (t, ok) => { msg.textContent = t; msg.className = 'sale-msg ' + (ok ? 'ok' : 'err'); };
+  if (fecha > hoyISO()) { setMsg('La fecha de la venta no puede ser futura.', false); return; }
+  if (cart.some(c => !(c.cantidad > 0))) { setMsg('Todas las cantidades deben ser mayores que 0.', false); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>'; msg.textContent='';
   try {
-    for (let i = 0; i < cart.length; i++) {
-      const item = cart[i];
-      const t0 = performance.now();
-      console.log(`[VENTA] PRODUCTO ${i+1}/${cart.length} (${item.codigo}) → petición enviada…`);
-      try {
-        const d = await api(null,{},'POST',{accion:'venta',codigo:item.codigo,cantidad:item.cantidad,descuentoUnit:item.descuento||0,cliente,tipoComprobante,metodoPago,estadoPago});
-        const ms = Math.round(performance.now()-t0);
-        console.log(`[VENTA] PRODUCTO ${i+1}/${cart.length} (${item.codigo}) → respuesta en ${ms}ms:`, d);
-        if (!d.ok) throw new Error(d.error);
-      } catch (errItem) {
-        const ms = Math.round(performance.now()-t0);
-        console.error(`[VENTA] PRODUCTO ${i+1}/${cart.length} (${item.codigo}) → ERROR tras ${ms}ms:`, errItem.name, errItem.message, '| navigator.onLine =', navigator.onLine);
-        throw errItem;
-      }
+    await cargarProductos();                       // stock y precios frescos (por si se editó Google Sheets)
+    const faltan = faltantesDeStock(cart);
+    if (faltan.length) throw new Error('Stock insuficiente: ' + faltan.join('; '));
+    const items = cart.slice();
+    const res = await registrarVentaDesdeItems(items, { cliente, tipoComprobante, metodoPago, estadoPago, fecha });
+    if (res.error) {
+      // Los productos ya registrados se sacan del carrito: reintentar NO los duplica.
+      cart = cart.filter(c => !res.registrados.includes(c.codigo)); renderCarrito();
+      await cargarProductos();
+      const fallo = items[res.registrados.length];
+      throw new Error((res.registrados.length ? `Se registraron ${res.registrados.length} de ${items.length} productos (ya salieron del carrito). ` : '') + `Falló "${fallo.nombre}": ${res.error.message}`);
     }
-    console.log('[VENTA] FIN — todos los productos registrados correctamente');
-    msg.textContent='✓ Venta registrada'; msg.className='sale-msg ok';
-    cart=[]; renderCarrito(); document.getElementById('v-cliente').value='';
+    setMsg('✓ Venta registrada' + (fecha !== hoyISO() ? ' con fecha ' + fecha.split('-').reverse().join('/') : ''), true);
+    cart=[]; renderCarrito(); document.getElementById('v-cliente').value=''; iniciarFechaVenta();
     await cargarProductos();
-  } catch(err){ console.error('[VENTA] Venta detenida por error:', err); msg.textContent=err.message; msg.className='sale-msg err'; }
-  finally { btn.disabled=false; btn.textContent='Confirmar venta'; }
+  } catch(err){ console.error('[VENTA] Venta detenida por error:', err); setMsg(err.message, false); }
+  finally { btn.disabled = cart.length===0; btn.textContent='Confirmar venta'; }
 });
 
 // ---------------- COTIZACIONES ----------------
@@ -1300,31 +1511,15 @@ document.getElementById('cot-search').addEventListener('input',(e)=>{
   cont.querySelectorAll('.result-item').forEach(el=>el.addEventListener('click',()=>{
     const p=PRODUCTOS.find(x=>x.codigo===el.dataset.codigo);
     const ex=cotCart.find(c=>c.codigo===p.codigo);
-    if(ex) ex.cantidad+=1; else cotCart.push({...p,cantidad:1,descuento:0});
+    if(ex) ex.cantidad=redQty(ex.cantidad+1); else cotCart.push({...p,cantidad:1,descuento:0,ajuste:0});
     renderCotCarrito(); e.target.value=''; cont.innerHTML='';
   }));
 });
 function renderCotCarrito(){
   const cont=document.getElementById('cot-items');
-  cont.innerHTML=cotCart.length?cotCart.map(c=>{
-    const neto = Math.max(0, c.precioVenta-(c.descuento||0));
-    return `<div class="line-item"><div class="li-name">${esc(c.nombre)}<small>${fmt(c.precioVenta)} c/u</small>
-    <button type="button" class="li-discount-btn" data-desc="${esc(c.codigo)}">${c.descuento?('Descuento: '+fmt(c.descuento)+' c/u ✎'):'+ Aplicar descuento'}</button></div>
-    <div class="li-qty"><button data-codigo="${esc(c.codigo)}" data-d="-1">−</button><input type="text" value="${c.cantidad}" readonly><button data-codigo="${esc(c.codigo)}" data-d="1">+</button></div>
-    <div class="li-total">${fmt(neto*c.cantidad)}</div><button class="li-remove" data-codigo="${esc(c.codigo)}" data-rm="1">&times;</button></div>`;
-  }).join(''):'<div class="empty-note">Agrega productos para empezar</div>';
-  cont.querySelectorAll('button[data-d]').forEach(b=>b.addEventListener('click',()=>{
-    cotCart=cotCart.map(c=>c.codigo===b.dataset.codigo?{...c,cantidad:c.cantidad+Number(b.dataset.d)}:c).filter(c=>c.cantidad>0); renderCotCarrito();
-  }));
-  cont.querySelectorAll('button[data-rm]').forEach(b=>b.addEventListener('click',()=>{ cotCart=cotCart.filter(c=>c.codigo!==b.dataset.codigo); renderCotCarrito(); }));
-  cont.querySelectorAll('button[data-desc]').forEach(b=>b.addEventListener('click',()=>{
-    const item = cotCart.find(c=>c.codigo===b.dataset.desc);
-    const val = prompt('Descuento por unidad (S/) para "'+item.nombre+'":', item.descuento||0);
-    if (val===null) return;
-    const n = Math.max(0, Number(val)||0);
-    cotCart = cotCart.map(c=>c.codigo===b.dataset.desc?{...c,descuento:n}:c); renderCotCarrito();
-  }));
-  const total=cotCart.reduce((s,c)=>s+Math.max(0,c.precioVenta-(c.descuento||0))*c.cantidad,0);
+  cont.innerHTML=cotCart.length?lineasHTML(cotCart):'<div class="empty-note">Agrega productos para empezar</div>';
+  enlazarLineas(cont, ()=>cotCart, v=>{cotCart=v;}, renderCotCarrito);
+  const total=totalLineas(cotCart);
   document.getElementById('cot-subtotal').textContent=fmt(total);
   document.getElementById('cot-igv').textContent=fmt(total-total/1.18);
   document.getElementById('cot-total').textContent=fmt(total);
@@ -1332,19 +1527,20 @@ function renderCotCarrito(){
 }
 document.getElementById('cot-generar').addEventListener('click', async () => {
   const btnCot = document.getElementById('cot-generar');
-  const itemsNeto = cotCart.map(c=>({...c, precioVenta: Math.max(0, c.precioVenta-(c.descuento||0))}));
-  const total = itemsNeto.reduce((s,c)=>s+c.precioVenta*c.cantidad,0);
+  const itemsNeto = cotCart.map(c=>({...c, precioVenta: precioNeto(c)}));
+  const total = totalLineas(cotCart);
   const base = total/1.18, igv = total-base;
   const cliente = document.getElementById('cot-cliente').value.trim() || 'Cliente genérico';
   const fechaStr = new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'});
 
   btnCot.disabled = true;
   try {
-    // 1) El backend asigna el correlativo real (el mismo que queda en Sheets)
+    // 1) El backend asigna el correlativo real (el mismo que queda en Sheets) y guarda código/cantidad/precio de cada ítem
     const d = await api(null,{},'POST',{ accion:'cotizacion', cliente, items: itemsNeto.map(c=>({codigo:c.codigo,nombre:c.nombre,cantidad:c.cantidad,precio:c.precioVenta})), total });
     if (!d.ok) throw new Error(d.error || 'No se pudo guardar la cotización');
     // 2) El PDF usa exactamente ese número formateado
-    generarPDF(d.numeroFormateado, fechaStr, cliente, itemsNeto, total, igv);
+    try { generarPDF(d.numeroFormateado, fechaStr, cliente, itemsNeto, total, igv); }
+    catch (ePdf) { alert('La cotización ' + d.numeroFormateado + ' SÍ se guardó en Google Sheets, pero no se pudo crear el PDF: ' + ePdf.message); }
     cargarHistorialCotizaciones();
   } catch(e) {
     alert('No se pudo generar la cotización: ' + e.message);
@@ -1528,27 +1724,128 @@ function generarPDF(numero, fechaStr, cliente, items, total, igv) {
 }
 
 let COTIZACIONES_CACHE = [];
+let COT_LISTA = [];
 let CLIENTES_CACHE = [];
 async function cargarClientesCache(){
   try { const d = await api('clientes'); if (d.ok) CLIENTES_CACHE = d.registros; } catch(e) {}
 }
+// ---------------- GENERAR VENTA DESDE UNA COTIZACIÓN ----------------
+// Los productos, cantidades y precios pasan solos de la cotización a la venta; solo se piden los datos que faltan.
+// El registro usa registrarVentaDesdeItems(), la MISMA función de "Nueva venta" (misma lógica de stock, IGV, ganancia, hoja).
+// El sticker sigue igual: desde la fila de la cotización ("Registrar servicio" / "Generar sticker") o el botón al terminar.
+let GV_CTX = null;
+function itemsDesdeCotizacion(c){
+  const items = [], avisos = [], nn = normTxt;
+  const linea = (p, cant, precioCot) => ({ codigo:p.codigo, nombre:p.nombre, tipo:p.tipo, stockActual:p.stockActual, precioVenta:p.precioVenta, cantidad:redQty(cant),
+    descuento: precioCot < p.precioVenta ? round2(p.precioVenta - precioCot) : 0,      // rebaja respecto al precio actual
+    ajuste:    precioCot > p.precioVenta ? round2(precioCot - p.precioVenta) : 0 });   // sube respecto al precio actual → precio final = precio de la cotización
+  if (c.items && c.items.length) {
+    c.items.forEach(it => {
+      const p = PRODUCTOS.find(x=>String(x.codigo)===String(it.codigo)) || PRODUCTOS.find(x=>nn(x.nombre)===nn(it.nombre));
+      if (!p) { avisos.push('No se encontró en Inventario: ' + it.nombre + ' (' + it.codigo + ')'); return; }
+      items.push(linea(p, it.cantidad, Number(it.precio)));
+    });
+  } else {
+    String(c.detalle||'').split(';').map(t=>t.trim()).filter(Boolean).forEach(seg => {
+      const m = seg.match(/^(.*?)\s*x(\d+(?:[.,]\d+)?)\s*$/i);
+      const p = m && PRODUCTOS.find(x=>nn(x.nombre)===nn(m[1]));
+      if (!p) { avisos.push('No se pudo reconocer: "' + seg + '"'); return; }
+      items.push(linea(p, numIn(m[2]), p.precioVenta));
+    });
+    if (items.length) avisos.push('Cotización anterior a esta versión: no guardó los precios exactos, se usan los del Inventario actual.');
+  }
+  if (items.length && Math.abs(totalLineas(items) - Number(c.total||0)) > 0.011) avisos.push('El total calculado (' + fmt(totalLineas(items)) + ') no coincide con el de la cotización (' + fmt(c.total) + '). Revísalo antes de confirmar.');
+  return { items, avisos };
+}
+function pintarGenerarVenta(){
+  const { cot, items, avisos } = GV_CTX;
+  document.getElementById('gv-titulo').textContent = 'Generar venta — ' + cot.numeroFormateado;
+  const html = items.map(c => `<div class="gv-item"><div>${esc(c.nombre)}<small>${fmtQty(c.cantidad)} × ${fmt(precioNeto(c))}${c.descuento?` (desc. ${fmt(c.descuento)})`:''}${c.ajuste?` (ajuste +${fmt(c.ajuste)})`:''}</small></div><div>${fmt(importeLinea(c))}</div></div>`).join('');
+  document.getElementById('gv-cuerpo').innerHTML =
+    (html || '<div class="empty-note">No quedan productos por registrar.</div>') +
+    `<div class="gv-total"><span>Total</span><span>${fmt(totalLineas(items))}</span></div>` +
+    avisos.map(a => `<div class="gv-aviso">⚠ ${esc(a)}</div>`).join('') +
+    `<div class="field"><label>Fecha de la venta</label><input type="date" id="gv-fecha" max="${hoyISO()}" value="${esc(GV_CTX.fecha)}"></div>` +
+    campoTexto('gv-cliente', 'Cliente / Mecánico', GV_CTX.cliente) +
+    campoSelect('gv-comprobante', 'Boleta o factura', ['Nota de Venta / Sin Comprobante','Boleta','Factura'], GV_CTX.comprobante) +
+    campoSelect('gv-metodo', 'Método de pago', ['Efectivo','Yape','Transferencia'], GV_CTX.metodo) +
+    campoSelect('gv-estado', 'Estado de cobro', ['Cobrado','Pendiente'], GV_CTX.estado);
+  document.getElementById('gv-confirmar').disabled = !items.length;
+}
+async function abrirGenerarVenta(numero){
+  await cargarProductos();   // precios y stock frescos
+  const cot = COTIZACIONES_CACHE.find(c=>String(c.numero)===String(numero)); if (!cot) return;
+  if (cot.ventaGenerada && !confirm('Esta cotización ya generó una venta (' + cot.ventaGenerada + '). ¿Generar otra venta igual?')) return;
+  const { items, avisos } = itemsDesdeCotizacion(cot);
+  GV_CTX = { cot, items, avisos, fecha: hoyISO(), cliente: cot.cliente||'', comprobante:'Nota de Venta / Sin Comprobante', metodo:'Efectivo', estado:'Cobrado' };
+  const msg = document.getElementById('gv-msg'); msg.textContent=''; msg.className='sale-msg';
+  document.getElementById('gv-sticker').style.display = 'none'; document.getElementById('gv-confirmar').style.display = '';
+  pintarGenerarVenta();
+  document.getElementById('cotventa-overlay').classList.add('show');
+}
+document.getElementById('gv-cerrar').addEventListener('click', () => document.getElementById('cotventa-overlay').classList.remove('show'));
+document.getElementById('cotventa-overlay').addEventListener('click', e => { if (e.target.id==='cotventa-overlay') e.target.classList.remove('show'); });
+document.getElementById('gv-sticker').addEventListener('click', () => { document.getElementById('cotventa-overlay').classList.remove('show'); if (GV_CTX) prellenarServicioDesdeCotizacion(String(GV_CTX.cot.numero)); });
+document.getElementById('gv-confirmar').addEventListener('click', async () => {
+  if (!GV_CTX) return;
+  const btn = document.getElementById('gv-confirmar'), msg = document.getElementById('gv-msg');
+  const setMsg = (t, ok) => { msg.textContent = t; msg.className = 'sale-msg ' + (ok ? 'ok' : 'err'); };
+  const datos = { fecha: document.getElementById('gv-fecha').value || hoyISO(), cliente: document.getElementById('gv-cliente').value.trim() || 'Cliente genérico',
+    tipoComprobante: document.getElementById('gv-comprobante').value, metodoPago: document.getElementById('gv-metodo').value, estadoPago: document.getElementById('gv-estado').value };
+  Object.assign(GV_CTX, { fecha:datos.fecha, cliente:datos.cliente, comprobante:datos.tipoComprobante, metodo:datos.metodoPago, estado:datos.estadoPago });
+  if (datos.fecha > hoyISO()) { setMsg('La fecha de la venta no puede ser futura.', false); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; msg.textContent = '';
+  try {
+    await cargarProductos();
+    const rehecho = itemsDesdeCotizacion({ ...GV_CTX.cot, items: GV_CTX.items.map(i=>({ codigo:i.codigo, nombre:i.nombre, cantidad:i.cantidad, precio:precioNeto(i) })) });   // recalcula con los precios más recientes
+    GV_CTX.items = rehecho.items;
+    const faltan = faltantesDeStock(GV_CTX.items);
+    if (faltan.length) throw new Error('Stock insuficiente: ' + faltan.join('; '));
+    const enviados = GV_CTX.items.slice();
+    const res = await registrarVentaDesdeItems(enviados, datos);
+    if (res.error) {
+      GV_CTX.items = GV_CTX.items.filter(i => !res.registrados.includes(i.codigo)); pintarGenerarVenta();   // reintentar NO duplica los ya registrados
+      await cargarProductos();
+      throw new Error((res.registrados.length ? `Se registraron ${res.registrados.length} de ${enviados.length} productos. ` : '') + `Falló "${enviados[res.registrados.length].nombre}": ${res.error.message}`);
+    }
+    try { await api(null,{},'POST',{ accion:'cotizacionVenta', numero: GV_CTX.cot.numero }); } catch(e) { console.warn('No se pudo marcar la cotización:', e.message); }
+    setMsg('✓ Venta registrada desde la cotización ' + GV_CTX.cot.numeroFormateado + (datos.fecha !== hoyISO() ? ' con fecha ' + datos.fecha.split('-').reverse().join('/') : ''), true);
+    document.getElementById('gv-cuerpo').innerHTML = '<div class="empty-note">Venta registrada.</div>';
+    btn.style.display = 'none';
+    if (!servicioDeCotizacion(GV_CTX.cot.numero)) document.getElementById('gv-sticker').style.display = 'block';   // sticker: mismo flujo de siempre
+    await cargarProductos(); cargarHistorialCotizaciones();
+  } catch (err) { setMsg(err.message, false); btn.disabled = !GV_CTX.items.length; }
+  finally { btn.textContent = 'Confirmar venta'; if (btn.style.display !== 'none') btn.disabled = !GV_CTX.items.length; }
+});
 function servicioDeCotizacion(numero){
   return CLIENTES_CACHE.find(c => String(c.cotizacionOrigen) === String(numero)) || null;
 }
+// La caché de cotizaciones se MEZCLA (no se reemplaza): "Clientes y vehículos" y "Registrar servicio" siguen encontrando
+// cotizaciones recientes aunque el historial esté filtrado por otro período.
+function mezclarCotizaciones(lista){
+  const m = new Map(COTIZACIONES_CACHE.map(c=>[String(c.numero),c]));
+  lista.forEach(c=>m.set(String(c.numero),c));
+  COTIZACIONES_CACHE = Array.from(m.values());
+}
 async function cargarHistorialCotizaciones(){
-  const cont = document.getElementById('cot-historial');
+  const cont = document.getElementById('cot-historial'), res = document.getElementById('cot-resumen');
   try {
-    const [data] = await Promise.all([api('cotizaciones'), cargarClientesCache()]);
-    if (!data.ok) throw new Error();
-    COTIZACIONES_CACHE = data.cotizaciones;
-    cont.innerHTML = data.cotizaciones.length ? data.cotizaciones.slice(0,15).map(c => renderFilaCotizacion(c)).join('') : '<div class="empty-note">Sin cotizaciones guardadas aún.</div>';
+    const [data] = await Promise.all([api('cotizaciones', FILTRO_COT.params()), cargarClientesCache()]);
+    if (!data.ok) throw new Error(data.error);
+    mezclarCotizaciones(data.cotizaciones);
+    COT_LISTA = data.cotizaciones.slice().sort((a,b)=> (new Date(b.fecha)-new Date(a.fecha)) || (b.numero-a.numero));
+    res.textContent = COT_LISTA.length ? `${COT_LISTA.length} cotización(es)` : '';
+    cont.innerHTML = COT_LISTA.length ? COT_LISTA.map(c => renderFilaCotizacion(c)).join('') : '<div class="empty-note">Sin cotizaciones en este período.</div>';
     enlazarAccionesCotizacion(cont);
   } catch(e) {
-    cont.innerHTML = '<div class="empty-note">No se pudo cargar el historial (¿ya actualizaste el Apps Script?).</div>';
+    cont.innerHTML = '<div class="empty-note">No se pudo cargar el historial: ' + esc(e.message) + '</div>';
   }
 }
 function renderFilaCotizacion(c){
   const servicio = servicioDeCotizacion(c.numero);
+  const ventaBtn = c.ventaGenerada
+    ? `<span class="tag-ok" title="Venta generada el ${esc(c.ventaGenerada)}">✓ Venta generada</span><button type="button" class="btn-mini" data-generar-venta="${esc(String(c.numero))}">Generar de nuevo</button>`
+    : `<button type="button" class="btn-mini" data-generar-venta="${esc(String(c.numero))}">🧾 Generar venta</button>`;
   const accion = servicio
     ? `<button type="button" class="btn-mini" data-sticker-cliente="${esc(String(c.numero))}">🏷️ Generar sticker</button><span class="tag-ok">✓ Servicio registrado</span>`
     : `<button type="button" class="btn-mini" data-registrar-servicio="${esc(String(c.numero))}">Registrar servicio</button>`;
@@ -1557,10 +1854,11 @@ function renderFilaCotizacion(c){
       <div><div class="who">${esc(c.numeroFormateado)} — ${esc(c.clienteLimpio || c.cliente)}${c.placa?(' · '+esc(c.placa)):''}</div><div class="when">${new Date(c.fecha).toLocaleDateString('es-PE')}</div></div>
       <div class="amt">${fmt(c.total)}</div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">${accion}</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">${ventaBtn}${accion}</div>
   </div>`;
 }
 function enlazarAccionesCotizacion(cont){
+  cont.querySelectorAll('[data-generar-venta]').forEach(b => b.addEventListener('click', () => abrirGenerarVenta(b.dataset.generarVenta)));
   cont.querySelectorAll('[data-registrar-servicio]').forEach(b => b.addEventListener('click', () => prellenarServicioDesdeCotizacion(b.dataset.registrarServicio)));
   cont.querySelectorAll('[data-sticker-cliente]').forEach(b => b.addEventListener('click', () => {
     const servicio = servicioDeCotizacion(b.dataset.stickerCliente);
@@ -1577,7 +1875,7 @@ function prellenarServicioDesdeCotizacion(numero){
   if (yaRegistrado) { generarYCompartirSticker(yaRegistrado); return; }
   SERVICIO_ORIGEN_NUMERO = numero;
   goView('clientes');
-  document.getElementById('cl-fecha').value = new Date().toISOString().slice(0,10);
+  document.getElementById('cl-fecha').value = hoyISO();
   document.getElementById('cl-placa').value = cot.placa || '';
   document.getElementById('cl-nombre').value = cot.clienteLimpio || cot.cliente || '';
   llenarYAjustar('cl-aceite', cot.aceiteNombre);
@@ -1596,7 +1894,7 @@ function prellenarServicioDesdeCotizacion(numero){
 async function cargarRegistrosRecientes(){
   const cont = document.getElementById('cl-recientes');
   if (!cont) return;
-  if (!COTIZACIONES_CACHE.length) { await cargarHistorialCotizaciones(); }
+  try { const d = await api('cotizaciones', { desde: isoLocal(new Date(Date.now()-3*86400000)) }); if (d.ok) mezclarCotizaciones(d.cotizaciones); } catch(e) {}   // siempre lee los últimos días (independiente del filtro del historial)
   const dosDiasMs = 2*24*60*60*1000;
   const ahora = Date.now();
   const recientes = COTIZACIONES_CACHE.filter(c => (ahora - new Date(c.fecha).getTime()) <= dosDiasMs);
@@ -1721,15 +2019,22 @@ async function generarYCompartirSticker(servicio){
 
 // ---------------- VENTAS (historial) ----------------
 async function cargarVentasHistorial(){
-  const cont=document.getElementById('vh-list');
-  const data=await api('ventas');
-  if(!data.ok){cont.innerHTML='<div class="empty-note">Error al cargar.</div>';return;}
-  VENTAS_HIST = data.ventas;
-  cont.innerHTML=VENTAS_HIST.length?VENTAS_HIST.map(v=>`
+  const cont=document.getElementById('vh-list'), res=document.getElementById('vh-resumen');
+  try {
+    const data=await api('ventas', FILTRO_VENTAS.params());
+    if(!data.ok) throw new Error(data.error);
+    // más recientes primero POR FECHA de la venta (una venta de ayer registrada hoy se ubica en su día)
+    VENTAS_HIST = data.ventas.slice().sort((a,b)=> (new Date(b.fecha)-new Date(a.fecha)) || (b.fila-a.fila));
+    const validas = VENTAS_HIST.filter(v=>v.estadoPago!=='Anulado');
+    res.textContent = VENTAS_HIST.length ? `${VENTAS_HIST.length} venta(s) · Total ${fmt(validas.reduce((t,v)=>t+(Number(v.subtotal)||0),0))}` + (VENTAS_HIST.length!==validas.length?` (sin contar ${VENTAS_HIST.length-validas.length} anulada/s)`:'') : '';
+    cont.innerHTML=VENTAS_HIST.length?VENTAS_HIST.map(v=>{
+      const desc=Number(v.descuentoUnit)||0, aj=Number(v.ajusteUnit)||0;
+      const detPrecio = (desc||aj) ? `<div class="det-precio">Precio ${fmt(v.precioVentaNormal)}${desc?` − desc. ${fmt(desc)}`:''}${aj?` ${aj>0?'+':'−'} ajuste ${fmt(Math.abs(aj))}`:''} = ${fmt(v.precioFinalUnit)} c/u</div>` : '';
+      return `
     <div class="list-row">
       <div class="lr-main">
         <div class="lr-title">${esc(v.producto)} ${v.estadoPago==='Pendiente'?'<span style="color:#c0392b;font-size:11px;">(Pendiente)</span>':''}${v.estadoPago==='Anulado'?'<span class="badge-anulado">ANULADO</span>':''}</div>
-        <div class="lr-sub">${new Date(v.fecha).toLocaleDateString('es-PE')} · × ${v.cantidad} · ${esc(v.cliente||'')}</div>
+        <div class="lr-sub">${new Date(v.fecha).toLocaleDateString('es-PE')} · × ${fmtQty(v.cantidad)} · ${esc(v.cliente||'')}</div>${detPrecio}
       </div>
       <div class="lr-total">${fmt(v.subtotal)}</div>
       <div class="lr-actions">
@@ -1737,10 +2042,12 @@ async function cargarVentasHistorial(){
         <button class="btn-sm" data-anularv="${v.fila}">Anular</button>
         <button class="btn-sm-danger" data-delv="${v.fila}">Eliminar</button>
       </div>
-    </div>`).join(''):'<div class="empty-note">Sin ventas registradas.</div>';
-  cont.querySelectorAll('[data-editv]').forEach(b=>b.addEventListener('click',()=>abrirModalVenta(VENTAS_HIST.find(v=>v.fila==b.dataset.editv))));
-  cont.querySelectorAll('[data-anularv]').forEach(b=>b.addEventListener('click',()=>anularRegistro('venta',Number(b.dataset.anularv))));
-  cont.querySelectorAll('[data-delv]').forEach(b=>b.addEventListener('click',()=>eliminarRegistro('venta',Number(b.dataset.delv))));
+    </div>`; }).join(''):'<div class="empty-note">Sin ventas en este período.</div>';
+    const porFila = f => VENTAS_HIST.find(v=>v.fila==f);
+    cont.querySelectorAll('[data-editv]').forEach(b=>b.addEventListener('click',()=>abrirModalVenta(porFila(b.dataset.editv))));
+    cont.querySelectorAll('[data-anularv]').forEach(b=>b.addEventListener('click',()=>anularRegistro('venta',Number(b.dataset.anularv),porFila(b.dataset.anularv).huella)));
+    cont.querySelectorAll('[data-delv]').forEach(b=>b.addEventListener('click',()=>eliminarRegistro('venta',Number(b.dataset.delv),porFila(b.dataset.delv).huella)));
+  } catch(e) { cont.innerHTML='<div class="empty-note">Error al cargar: '+esc(e.message)+'</div>'; }
 }
 
 // ---------------- INVENTARIO ----------------
@@ -1748,19 +2055,51 @@ function renderInventario(filtro=''){
   const cont=document.getElementById('inv-tbody');
   const q=filtro.trim().toLowerCase();
   const lista=q?PRODUCTOS.filter(p=>p.nombre.toLowerCase().includes(q)||p.codigo.toLowerCase().includes(q)):PRODUCTOS;
-  cont.innerHTML=lista.length?lista.map(p=>`<tr><td class="mono">${esc(p.codigo)}</td><td>${esc(p.nombre)}</td><td>${p.stockActual}${p.stockActual<=3?'<span class="badge-low">BAJO</span>':''}</td><td class="mono">${fmt(p.precioVenta)}</td><td><div class="inv-acciones"><button class="btn-sm" data-editp="${p.fila}">Editar</button><button class="btn-sm-danger" data-delp="${p.fila}">Eliminar</button></div></td></tr>`).join(''):'<tr><td colspan="5" class="empty-note">Sin productos.</td></tr>';
+  cont.innerHTML=lista.length?lista.map(p=>`<tr><td class="mono">${esc(p.codigo)}</td><td>${esc(p.nombre)}</td><td>${fmtQty(p.stockActual)}${p.stockActual<=3?'<span class="badge-low">BAJO</span>':''}</td><td class="mono">${fmt(p.precioVenta)}</td><td><div class="inv-acciones"><button class="btn-sm" data-editp="${p.fila}">Editar</button><button class="btn-sm-danger" data-delp="${p.fila}">Eliminar</button></div></td></tr>`).join(''):'<tr><td colspan="5" class="empty-note">Sin productos.</td></tr>';
   cont.querySelectorAll('[data-editp]').forEach(b=>b.addEventListener('click',()=>abrirModalProducto(PRODUCTOS.find(p=>p.fila==b.dataset.editp))));
-  cont.querySelectorAll('[data-delp]').forEach(b=>b.addEventListener('click',()=>eliminarRegistro('producto',Number(b.dataset.delp))));
+  cont.querySelectorAll('[data-delp]').forEach(b=>b.addEventListener('click',()=>eliminarRegistro('producto',Number(b.dataset.delp),PRODUCTOS.find(p=>p.fila==b.dataset.delp).huella)));
 }
 document.getElementById('inv-search').addEventListener('input', e=>renderInventario(e.target.value));
 
 // ---- Nuevo producto (crear ≠ comprar: el stock nace en 0, la compra genera el movimiento) ----
 const nuevoProdOverlay = document.getElementById('nuevo-prod-overlay');
+// ---- Código automático: propone el siguiente código libre ----
+// Serie principal = códigos con formato LETRAS+NÚMERO (P058, P059…). Se toma el número MÁS ALTO (no el de la última fila), se suma 1 y
+// se conserva el ancho (P058 → P059). Si por saltos o códigos manuales ese código ya existiera, avanza hasta encontrar uno libre.
+function codigoExistente(c){ const u=String(c||'').trim().toUpperCase(); return PRODUCTOS.find(p=>String(p.codigo||'').trim().toUpperCase()===u) || null; }
+function siguienteCodigoProducto(){
+  const cods = PRODUCTOS.map(p=>String(p.codigo||'').trim()).filter(Boolean);
+  const usados = new Set(cods.map(c=>c.toUpperCase()));
+  const grupos = {};
+  cods.forEach(c=>{ const m=c.match(/^([A-Za-z]+)(\d+)$/); if(!m) return; (grupos[m[1].toUpperCase()] = grupos[m[1].toUpperCase()] || []).push({ n:parseInt(m[2],10), ancho:m[2].length, pre:m[1] }); });
+  let clave = 'P';
+  if (!grupos['P']) { const k = Object.keys(grupos).sort((a,b)=>grupos[b].length-grupos[a].length)[0]; if (k) clave = k; }
+  const g = grupos[clave] || [];
+  const pre = g.length ? g[0].pre : 'P';
+  const max = g.reduce((m,x)=>Math.max(m,x.n),0);
+  const ancho = Math.max(3, ...g.map(x=>x.ancho));
+  let n = max + 1, cod;
+  do { cod = pre + String(n).padStart(ancho,'0'); n++; } while (usados.has(cod.toUpperCase()));
+  return cod;
+}
+let npCodigoEditado = false;
+function validarCodigoNuevo(){
+  const hint = document.getElementById('np-codigo-hint'), c = document.getElementById('np-codigo').value.trim();
+  if (!c) { hint.textContent = ''; return false; }
+  const ex = codigoExistente(c);
+  if (ex) { hint.textContent = '⚠ El código ' + ex.codigo + ' ya existe (' + ex.nombre + '). Usa otro.'; hint.style.color = '#c0392b'; return false; }
+  hint.textContent = '✓ Código disponible'; hint.style.color = '#0a8f88'; return true;
+}
+document.getElementById('np-codigo').addEventListener('input', () => { npCodigoEditado = true; validarCodigoNuevo(); });
 document.getElementById('inv-nuevo-btn').addEventListener('click', () => {
   ['np-codigo','np-nombre','np-ubicacion','np-preciocompra','np-precioventa'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('np-tipo').value = 'Producto';
   document.getElementById('nuevo-prod-msg').textContent = '';
+  npCodigoEditado = false;
+  document.getElementById('np-codigo').value = siguienteCodigoProducto(); validarCodigoNuevo();   // se muestra ANTES de guardar
   nuevoProdOverlay.classList.add('show');
+  // Se relee el Inventario por si alguien creó productos desde Sheets u otro dispositivo; si no tocaste el código, se recalcula.
+  cargarProductos().then(() => { if (!npCodigoEditado && nuevoProdOverlay.classList.contains('show')) { document.getElementById('np-codigo').value = siguienteCodigoProducto(); validarCodigoNuevo(); } });
 });
 document.getElementById('nuevo-prod-close').addEventListener('click', () => nuevoProdOverlay.classList.remove('show'));
 document.getElementById('nuevo-prod-guardar').addEventListener('click', async () => {
@@ -1769,6 +2108,8 @@ document.getElementById('nuevo-prod-guardar').addEventListener('click', async ()
   const codigo = document.getElementById('np-codigo').value.trim();
   const nombre = document.getElementById('np-nombre').value.trim();
   if (!codigo || !nombre) { msg.textContent = 'Código y nombre son obligatorios.'; msg.className = 'sale-msg err'; return; }
+  const dup = codigoExistente(codigo);
+  if (dup) { msg.textContent = '✕ No se creó: el código ' + dup.codigo + ' ya existe (' + dup.nombre + '). Cambia el código.'; msg.className = 'sale-msg err'; validarCodigoNuevo(); return; }
   btn.disabled = true; btn.textContent = 'Creando…';
   try {
     const body = {
@@ -1792,7 +2133,7 @@ document.getElementById('nuevo-prod-guardar').addEventListener('click', async ()
 
 // ---------------- COMPRAS Y GASTOS ----------------
 let productoCompraElegido=null;
-document.getElementById('cg-fecha').value = new Date().toISOString().slice(0,10);
+document.getElementById('cg-fecha').value = hoyISO();
 document.getElementById('cg-search').addEventListener('input',(e)=>{
   const q=e.target.value.trim().toLowerCase(); const cont=document.getElementById('cg-results');
   if(!q){cont.innerHTML='';return;}
@@ -1805,8 +2146,8 @@ document.getElementById('cg-search').addEventListener('input',(e)=>{
     document.getElementById('cg-tipomov-row').style.display='flex';
     document.getElementById('cg-cantidad-row').style.display='flex';
     document.getElementById('cg-descripcion-row').style.display='none';
-    document.getElementById('cg-categoria-row').style.display='none';
     document.getElementById('cg-search').value=''; document.getElementById('cg-search').style.display='none'; cont.innerHTML='';
+    setTimeout(()=>document.getElementById('cg-cantidad').focus(),0);   // siguiente dato a digitar: la cantidad
   }));
 });
 document.getElementById('cg-quitar').addEventListener('click',()=>{
@@ -1830,37 +2171,91 @@ document.getElementById('cg-tipomov').addEventListener('change', e=>{
 document.getElementById('cg-tipodoc').addEventListener('change', e=>{
   document.getElementById('cg-docrelacionado-row').style.display = (e.target.value === 'Nota de Crédito') ? 'flex' : 'none';
 });
+
+// ---- Proveedor con búsqueda / autocompletado ----
+// La lista sale de las compras ya registradas (más recientes primero). Al elegir uno se prellenan su moneda y tipo de documento habituales.
+let PROVEEDORES = [];
+async function cargarProveedores(){ try { const d = await api('proveedores'); if (d.ok) PROVEEDORES = d.proveedores; } catch(e) {} }
+const normTxt = t => String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+(function(){
+  const inp = document.getElementById('cg-proveedor'), lista = document.getElementById('cg-prov-results');
+  let sel = -1, items = [], tCierre = null;
+  function pintar(){
+    clearTimeout(tCierre);   // si hay un cierre diferido pendiente (por perder el foco), se cancela
+    const q = normTxt(inp.value);
+    items = PROVEEDORES.filter(p => !q || normTxt(p.nombre).includes(q))
+      .sort((a,b)=> (normTxt(b.nombre).startsWith(q)?1:0) - (normTxt(a.nombre).startsWith(q)?1:0))
+      .slice(0,8);
+    // si lo escrito ya coincide exactamente con un proveedor, no hace falta sugerirlo
+    if (!items.length || (items.length===1 && normTxt(items[0].nombre)===q)) { lista.classList.remove('show'); lista.innerHTML=''; sel=-1; return; }
+    sel = -1;
+    lista.innerHTML = items.map((p,i)=>`<div class="result-item" data-i="${i}"><div><div class="ri-name">${esc(p.nombre)}</div><div class="ri-meta">${esc(p.tipoDocumento||'Factura')} · ${esDol(p.moneda)?'Dólares':'Soles'} · ${p.veces} compra(s)</div></div></div>`).join('');
+    lista.classList.add('show');
+    lista.querySelectorAll('.result-item').forEach(el=>el.addEventListener('mousedown',ev=>{ ev.preventDefault(); elegir(Number(el.dataset.i)); }));   // mousedown: se elige antes de que el campo pierda el foco
+  }
+  function elegir(i){
+    const p = items[i]; if(!p) return;
+    inp.value = p.nombre; lista.classList.remove('show');
+    const mon = document.getElementById('cg-moneda'); mon.value = esDol(p.moneda)?'Dolares':'Soles'; mon.dispatchEvent(new Event('change'));
+    const td = document.getElementById('cg-tipodoc'); td.value = (p.tipoDocumento==='Nota de Crédito')?'Nota de Crédito':'Factura'; td.dispatchEvent(new Event('change'));
+    document.getElementById('cg-comprobante').focus();
+  }
+  inp.addEventListener('input', pintar);
+  inp.addEventListener('focus', () => { if (!PROVEEDORES.length) cargarProveedores().then(pintar); else pintar(); });
+  inp.addEventListener('blur', () => { tCierre = setTimeout(()=>lista.classList.remove('show'),120); });
+  inp.addEventListener('keydown', e => {
+    const els = lista.querySelectorAll('.result-item'); if (!lista.classList.contains('show') || !els.length) return;
+    if (e.key==='ArrowDown'||e.key==='ArrowUp') { e.preventDefault(); sel = (sel + (e.key==='ArrowDown'?1:-1) + els.length) % els.length; els.forEach((x,i)=>x.classList.toggle('sel',i===sel)); }
+    else if (e.key==='Enter' && sel>=0) { e.preventDefault(); elegir(sel); }
+    else if (e.key==='Escape') lista.classList.remove('show');
+  });
+})();
+
 document.getElementById('cg-guardar').addEventListener('click', async () => {
-  const msg=document.getElementById('cg-msg');
+  const msg=document.getElementById('cg-msg'), btn=document.getElementById('cg-guardar');
+  if (btn.disabled) return;
   const tipoMovimiento = productoCompraElegido ? document.getElementById('cg-tipomov').value : 'Gasto';
   const monto=document.getElementById('cg-monto').value;
   if(monto===''&&tipoMovimiento!=='Bonificación'){msg.textContent='Falta el monto';msg.className='sale-msg err';return;}
-  const body={ codigo: productoCompraElegido?productoCompraElegido.codigo:'', cantidad: document.getElementById('cg-cantidad').value||0,
-    descripcion: document.getElementById('cg-descripcion').value, proveedor: document.getElementById('cg-proveedor').value,
+  const body={ codigo: productoCompraElegido?productoCompraElegido.codigo:'', cantidad: numIn(document.getElementById('cg-cantidad').value)||0,
+    descripcion: document.getElementById('cg-descripcion').value, proveedor: document.getElementById('cg-proveedor').value.trim(),
     comprobante: document.getElementById('cg-comprobante').value, moneda: document.getElementById('cg-moneda').value,
     tipoCambio: document.getElementById('cg-tc').value||1, montoOriginal: tipoMovimiento==='Bonificación'?0:monto, tipoMovimiento,
     fecha: document.getElementById('cg-fecha').value,
     tipoDocumento: document.getElementById('cg-tipodoc').value,
     documentoRelacionado: document.getElementById('cg-docrelacionado').value,
     tcSunat: document.getElementById('cg-tcsunat').value };
+  btn.disabled = true;
   try {
     const d = await api(null,{},'POST',{accion:'compra',...body});
     if(!d.ok) throw new Error(d.error);
-    msg.textContent='✓ Registrado correctamente'; msg.className='sale-msg ok';
-    ['cg-cantidad','cg-descripcion','cg-proveedor','cg-comprobante','cg-monto','cg-tc','cg-tcsunat','cg-docrelacionado'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('cg-fecha').value = new Date().toISOString().slice(0,10);
+    const mantener = document.getElementById('cg-mantener').checked;
+    // Se limpian solo los datos propios de cada línea. Si "mantener" está marcado, los datos repetitivos de la factura
+    // (fecha, proveedor, comprobante, tipo de documento, moneda y tipos de cambio) quedan listos para la siguiente compra.
+    const limpiar = ['cg-cantidad','cg-descripcion','cg-monto'].concat(mantener ? [] : ['cg-proveedor','cg-comprobante','cg-tc','cg-tcsunat','cg-docrelacionado']);
+    limpiar.forEach(id=>document.getElementById(id).value='');
+    if (!mantener) {
+      document.getElementById('cg-fecha').value = hoyISO();
+      document.getElementById('cg-moneda').value='Soles'; document.getElementById('cg-moneda').dispatchEvent(new Event('change'));
+      document.getElementById('cg-tipodoc').value='Factura'; document.getElementById('cg-tipodoc').dispatchEvent(new Event('change'));
+    }
+    document.getElementById('cg-tipomov').value='Compra';
     document.getElementById('cg-monto').disabled=false;
     productoCompraElegido=null;
     document.getElementById('cg-elegido').style.display='none';
     document.getElementById('cg-tipomov-row').style.display='none';
     document.getElementById('cg-search').style.display='block';
     document.getElementById('cg-descripcion-row').style.display='flex';
-    document.getElementById('cg-categoria-row').style.display='flex';
     document.getElementById('cg-cantidad-row').style.display='none';
-    await cargarProductos(); cargarHistorialCompras();
+    msg.textContent = '✓ Registrado correctamente' + (mantener ? ' — los datos de la factura quedaron listos para el siguiente producto.' : ''); msg.className='sale-msg ok';
+    document.getElementById('cg-search').focus();
+    await cargarProductos(); cargarHistorialCompras(); cargarProveedores();
   } catch(err){ msg.textContent=err.message; msg.className='sale-msg err'; }
+  finally { btn.disabled = false; }
 });
+
 // ---------------- CONCILIACIÓN SUNAT (agrupa Compras por Llave normalizada) ----------------
+// (Se muestra en la sección "Resumen SUNAT", con el mismo mes que se elige arriba. La lógica de agrupación/estados no cambió.)
 function renderConciliacionSunat(compras){
   const cont = document.getElementById('cg-conciliacion');
   if (!cont) return;
@@ -1875,11 +2270,13 @@ function renderConciliacionSunat(compras){
     if (c.tipoDocumento === 'Nota de Crédito') g.esNC = true;
     if (c.tcSunat) g.tieneTcSunat = true;
   });
-  const filas = Object.values(grupos).sort((a,b)=> new Date(b.fecha) - new Date(a.fecha)).slice(0,15);
+  const filas = Object.values(grupos).sort((a,b)=> new Date(b.fecha) - new Date(a.fecha));
+  const resumen = document.getElementById('cg-conc-resumen');
+  if (resumen) resumen.textContent = filas.length ? `${filas.length} comprobante(s) en el período` : '';
   cont.innerHTML = filas.length ? filas.map(g => {
     let estado = 'CUADRADO', clase='badge-ok';
     if (g.esNC) { estado='NOTA DE CRÉDITO'; clase='badge-info'; }
-    else if (g.moneda === 'Dolares' && !g.tieneTcSunat) { estado='REVISAR TC SUNAT'; clase='badge-warn'; }
+    else if (esDol(g.moneda) && !g.tieneTcSunat) { estado='REVISAR TC SUNAT'; clase='badge-warn'; }
     return `<div class="list-row">
       <div class="lr-main">
         <div class="lr-title">${esc(g.comprobante)} — ${esc(g.proveedor||'')}</div>
@@ -1887,19 +2284,34 @@ function renderConciliacionSunat(compras){
       </div>
       <span class="badge-anulado ${clase}" style="position:static;">${estado}</span>
     </div>`;
-  }).join('') : '<div class="empty-note">Sin comprobantes para conciliar.</div>';
+  }).join('') : '<div class="empty-note">Sin comprobantes para conciliar en este período.</div>';
+}
+function rangoDeMes(periodo){   // 'yyyy-MM' → primer y último día
+  const [y,m] = periodo.split('-').map(Number);
+  return { desde: periodo+'-01', hasta: periodo+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0') };
+}
+async function cargarConciliacion(periodo, etiqueta){
+  const cont = document.getElementById('cg-conciliacion'); if (!cont) return;
+  document.getElementById('cg-conc-titulo').textContent = 'Conciliación SUNAT · ' + etiqueta;
+  try {
+    const data = await api('compras', rangoDeMes(periodo));
+    if (!data.ok) throw new Error(data.error);
+    renderConciliacionSunat(data.compras);
+  } catch(e) { cont.innerHTML = '<div class="empty-note">No se pudo cargar la conciliación: '+esc(e.message)+'</div>'; }
 }
 async function cargarHistorialCompras(){
-  const cont=document.getElementById('cg-historial');
-  const data=await api('compras');
-  if(!data.ok){cont.innerHTML='<div class="empty-note">Error.</div>';return;}
-  COMPRAS_HIST = data.compras.slice(0,15);
-  renderConciliacionSunat(data.compras);
-  cont.innerHTML=COMPRAS_HIST.length?COMPRAS_HIST.map(c=>`
+  const cont=document.getElementById('cg-historial'), res=document.getElementById('cg-resumen');
+  try {
+    const data=await api('compras', FILTRO_COMPRAS.params());
+    if(!data.ok) throw new Error(data.error);
+    COMPRAS_HIST = data.compras.slice().sort((a,b)=> (new Date(b.fecha)-new Date(a.fecha)) || (b.fila-a.fila));
+    const validas = COMPRAS_HIST.filter(c=>c.tipoMovimiento!=='Anulado');
+    res.textContent = COMPRAS_HIST.length ? `${COMPRAS_HIST.length} registro(s) · Total ${fmt(validas.reduce((t,c)=>t+(Number(c.montoTotal)||0),0))}` : '';
+    cont.innerHTML=COMPRAS_HIST.length?COMPRAS_HIST.map(c=>`
     <div class="list-row">
       <div class="lr-main">
         <div class="lr-title">${esc(c.producto||c.descripcion)} ${c.tipoMovimiento==='Anulado'?'<span class="badge-anulado">ANULADO</span>':''}</div>
-        <div class="lr-sub">${esc(c.proveedor||'')}</div>
+        <div class="lr-sub">${new Date(c.fecha).toLocaleDateString('es-PE')} · ${esc(c.proveedor||'')}${c.comprobante?' · '+esc(c.comprobante):''}</div>
       </div>
       <div class="lr-total">${fmt(c.montoTotal)}</div>
       <div class="lr-actions">
@@ -1907,25 +2319,29 @@ async function cargarHistorialCompras(){
         <button class="btn-sm" data-anularc="${c.fila}">Anular</button>
         <button class="btn-sm-danger" data-delc="${c.fila}">Eliminar</button>
       </div>
-    </div>`).join(''):'<div class="empty-note">Sin registros aún.</div>';
-  cont.querySelectorAll('[data-editc]').forEach(b=>b.addEventListener('click',()=>abrirModalCompra(COMPRAS_HIST.find(c=>c.fila==b.dataset.editc))));
-  cont.querySelectorAll('[data-anularc]').forEach(b=>b.addEventListener('click',()=>anularRegistro('compra',Number(b.dataset.anularc))));
-  cont.querySelectorAll('[data-delc]').forEach(b=>b.addEventListener('click',()=>eliminarRegistro('compra',Number(b.dataset.delc))));
+    </div>`).join(''):'<div class="empty-note">Sin registros en este período.</div>';
+    const porFila = f => COMPRAS_HIST.find(c=>c.fila==f);
+    cont.querySelectorAll('[data-editc]').forEach(b=>b.addEventListener('click',()=>abrirModalCompra(porFila(b.dataset.editc))));
+    cont.querySelectorAll('[data-anularc]').forEach(b=>b.addEventListener('click',()=>anularRegistro('compra',Number(b.dataset.anularc),porFila(b.dataset.anularc).huella)));
+    cont.querySelectorAll('[data-delc]').forEach(b=>b.addEventListener('click',()=>eliminarRegistro('compra',Number(b.dataset.delc),porFila(b.dataset.delc).huella)));
+  } catch(e) { cont.innerHTML='<div class="empty-note">Error: '+esc(e.message)+'</div>'; }
 }
 
 // ---------------- RESUMEN SUNAT ----------------
 function llenarMeses(){
   const sel=document.getElementById('r-mes'); const nombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const hoy=new Date();
-  for(let i=0;i<6;i++){ const d=new Date(hoy.getFullYear(),hoy.getMonth()-i,1); const periodo=d.toISOString().slice(0,7);
+  for(let i=0;i<6;i++){ const d=new Date(hoy.getFullYear(),hoy.getMonth()-i,1); const periodo=isoLocal(d).slice(0,7);
     const opt=document.createElement('option'); opt.value=periodo; opt.textContent=nombres[d.getMonth()]+' '+d.getFullYear(); sel.appendChild(opt); }
 }
 llenarMeses();
 document.getElementById('r-calcular').addEventListener('click', cargarResumen);
 function badgeEl(el, texto, clase){ el.textContent = texto; el.className = 'hs-badge ' + clase; }
+document.getElementById('r-mes').addEventListener('change', () => cargarResumen());   // elegir mes actualiza el resumen Y la conciliación
 async function cargarResumen(){
   const sel = document.getElementById('r-mes');
   const periodo = sel.value;
+  cargarConciliacion(periodo, sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : periodo);   // no espera: se carga en paralelo
   const data=await api('resumen',{periodo});
   if(!data.ok)return; const r=data.resumen;
   document.getElementById('r-periodo-label').textContent = sel.selectedOptions[0].textContent;
@@ -1968,8 +2384,8 @@ async function cargarResumen(){
 let CJ_TIPO = 'semana';
 let CJ_DATA = null;
 
-function cjHoyISO(){ return new Date().toISOString().slice(0,10); }
-function cjMesActualISO(){ return new Date().toISOString().slice(0,7); }
+function cjHoyISO(){ return hoyISO(); }
+function cjMesActualISO(){ return hoyISO().slice(0,7); }
 
 document.getElementById('cj-input-semana').value = cjHoyISO();
 document.getElementById('cj-input-mes').value = cjMesActualISO();
@@ -2063,7 +2479,7 @@ document.getElementById('cj-efectivo-contado').addEventListener('input', actuali
 document.getElementById('cj-yape-verificado').addEventListener('input', actualizarCuadre);
 
 // ---------------- CLIENTES Y VEHÍCULOS ----------------
-document.getElementById('cl-fecha').value = new Date().toISOString().slice(0,10);
+document.getElementById('cl-fecha').value = hoyISO();
 // ---------------- AUTO-AJUSTE DE TEXTO (nunca se sale del cuadro) ----------------
 // Reduce el tamaño de fuente progresivamente hasta que el contenido quepa dentro del
 // cuadro (ancho para inputs de una línea, alto para el textarea de Observaciones que
@@ -2131,7 +2547,7 @@ document.getElementById('cl-guardar').addEventListener('click', async () => {
     btnSticker.addEventListener('click', () => generarYCompartirSticker(servicioGuardado));
     msg.appendChild(btnSticker);
     ['cl-placa','cl-nombre','cl-aceite','cl-cantidad','cl-filtroaceite','cl-filtroaire','cl-filtropetroleo','cl-observaciones','cl-km','cl-proxcambio'].forEach(id=>{ const el=document.getElementById(id); el.value=''; if (el.classList.contains('cl-autofit')) ajustarTextoCuadro(el); });
-    document.getElementById('cl-fecha').value = new Date().toISOString().slice(0,10);
+    document.getElementById('cl-fecha').value = hoyISO();
     SERVICIO_ORIGEN_NUMERO = null;
     cargarHistorialCotizaciones(); cargarRegistrosRecientes();
   } catch(err) {
@@ -2156,15 +2572,23 @@ document.getElementById('cv-guardar').addEventListener('click', async () => {
     await cargarProductos(); cargarHistorialConversiones();
   } catch(err) { msg.textContent = '✗ ' + err.message; msg.className = 'sale-msg err'; }
 });
+let CONV_HIST = [];
 async function cargarHistorialConversiones(){
-  const cont = document.getElementById('cv-historial');
+  const cont = document.getElementById('cv-historial'), res = document.getElementById('cv-resumen');
   try {
-    const data = await api('conversiones');
-    if (!data.ok) throw new Error();
-    cont.innerHTML = data.conversiones.length ? data.conversiones.map(c=>`
-      <div class="venta-row"><div><div class="who">${esc(c.productoEnvase)} → ${esc(c.productoGranel)}</div><div class="when">${new Date(c.fecha).toLocaleDateString('es-PE')} · ${c.envasesAbiertos} envase(s)</div></div><div class="amt">${c.litrosGenerados} L</div></div>
-    `).join('') : '<div class="empty-note">Sin conversiones registradas.</div>';
-  } catch(e) { cont.innerHTML = '<div class="empty-note">No se pudo cargar (¿ya actualizaste el Apps Script?).</div>'; }
+    const data = await api('conversiones', FILTRO_CONV.params());
+    if (!data.ok) throw new Error(data.error);
+    CONV_HIST = data.conversiones.slice().sort((a,b)=> (new Date(b.fecha)-new Date(a.fecha)) || (b.fila-a.fila));
+    res.textContent = CONV_HIST.length ? `${CONV_HIST.length} conversión(es) · ${fmtQty(CONV_HIST.reduce((t,c)=>t+(Number(c.litrosGenerados)||0),0))} L generados` : '';
+    cont.innerHTML = CONV_HIST.length ? CONV_HIST.map(c=>`
+      <div class="list-row">
+        <div class="lr-main"><div class="lr-title">${esc(c.productoEnvase)} → ${esc(c.productoGranel)}</div>
+          <div class="lr-sub">${new Date(c.fecha).toLocaleDateString('es-PE')} · ${fmtQty(c.envasesAbiertos)} envase(s) × ${fmtQty(c.litrosPorEnvase)} L</div></div>
+        <div class="lr-total">${fmtQty(c.litrosGenerados)} L</div>
+        <div class="lr-actions"><button class="btn-sm" data-editcv="${c.fila}">Editar</button></div>
+      </div>`).join('') : '<div class="empty-note">Sin conversiones en este período.</div>';
+    cont.querySelectorAll('[data-editcv]').forEach(b=>b.addEventListener('click',()=>abrirModalConversion(CONV_HIST.find(c=>c.fila==b.dataset.editcv))));
+  } catch(e) { cont.innerHTML = '<div class="empty-note">No se pudo cargar: ' + esc(e.message) + '</div>'; }
 }
 
 // ---------------- DEUDORES ----------------
