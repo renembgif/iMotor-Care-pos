@@ -698,9 +698,9 @@ button{ cursor:pointer; }
       <div class="panel">
         <div class="panel-head">Buscar por placa</div>
         <div class="panel-body" style="padding:16px 18px;">
-          <input type="text" id="cl-buscar-placa" placeholder="Escribe una placa…" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+          <input type="text" id="cl-buscar-placa" placeholder="Placa o nombre del cliente…" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
         </div>
-        <div class="panel-body" style="padding:0;" id="cl-historial"><div class="empty-note">Escribe una placa arriba para ver su historial.</div></div>
+        <div class="panel-body" style="padding:0;" id="cl-historial"><div class="empty-note">Escribe una placa o un nombre arriba para ver su historial.</div></div>
       </div>
     </section>
 
@@ -1174,6 +1174,19 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
         envasesAbiertos: numIn(document.getElementById('em-envases').value),
         litrosPorEnvase: numIn(document.getElementById('em-litros').value),
         codigoGranel: document.getElementById('em-granel').value.trim() };
+    } else if (editModalContext.tipo === 'cliente') {
+      body = { ...body, accion: 'editarCliente',
+        fecha: document.getElementById('em-fecha').value,
+        placa: document.getElementById('em-placa').value.trim().toUpperCase(),
+        nombre: document.getElementById('em-nombre').value.trim(),
+        aceite: document.getElementById('em-aceite').value.trim(),
+        cantidad: document.getElementById('em-cantidad').value.trim(),
+        filtroAceite: document.getElementById('em-filtroaceite').value.trim(),
+        filtroAire: document.getElementById('em-filtroaire').value.trim(),
+        filtroPetroleo: document.getElementById('em-filtropetroleo').value.trim(),
+        km: document.getElementById('em-km').value.trim(),
+        proxCambio: document.getElementById('em-proxcambio').value.trim(),
+        observaciones: document.getElementById('em-observaciones').value.trim() };
     } else if (editModalContext.tipo === 'producto') {
       body = { ...body, accion: 'editarProducto',
         nombre: document.getElementById('em-nombre').value.trim(),
@@ -1191,6 +1204,10 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
     if (tipoGuardado === 'venta') { await cargarVentasHistorial(); await cargarProductos(); }
     if (tipoGuardado === 'compra') { await cargarHistorialCompras(); await cargarProductos(); }
     if (tipoGuardado === 'producto') { await cargarProductos(); }
+    if (tipoGuardado === 'cliente') {
+      try { const dc = await api('clientes'); if (dc.ok) CLIENTES_CACHE = dc.registros; } catch(e) {}
+      const q = document.getElementById('cl-buscar-placa').value.trim(); if (q) await buscarClientes_(q);
+    }
     if (tipoGuardado === 'conversion') { await cargarHistorialConversiones(); await cargarProductos(); }
 
     setTimeout(() => { editModalOverlay.classList.remove('show'); }, 700);
@@ -1223,7 +1240,7 @@ async function eliminarRegistro(tipo, fila, huella) {
 
 let CLAVE = '';
 // Si Apps Script falla con una excepción no controlada, Google responde una página HTML sin cabeceras CORS y el
-// navegador solo dice "Failed to fetch". El backend v16 ya devuelve siempre JSON con el motivo real; aquí se
+// navegador solo dice "Failed to fetch". El backend v17 ya devuelve siempre JSON con el motivo real; aquí se
 // traduce cualquier fallo de red/HTML a un mensaje entendible (sin ocultar el detalle técnico).
 async function api(accion, params={}, metodo='GET', body=null) {
   let res;
@@ -2604,22 +2621,52 @@ async function cargarDeudores(){
 }
 
 let clBuscarTimeout;
+let CL_RESULTADOS = [];   // resultados de la última búsqueda (para Ver sticker / Editar)
+// Sticker de un resultado de búsqueda: usa la fecha ISO local (no la de pantalla) y limpia los Km ("350 364" → 350364).
+function servicioDesdeResultadoCliente_(r){
+  const soloDigitos = v => { const d = String(v == null ? '' : v).replace(/[^\d]/g, ''); return d; };
+  return { ...r, fecha: r.fechaISO ? r.fechaISO + 'T00:00:00' : r.fecha, km: soloDigitos(r.km), proxCambio: soloDigitos(r.proxCambio) };
+}
+function abrirModalCliente(r) {
+  editModalContext = { tipo: 'cliente', fila: r.fila, huella: r.huella };
+  editModalTitle.textContent = 'Editar ficha del vehículo';
+  editModalMsg.textContent = '';
+  editModalBody.innerHTML =
+    `<div class="field"><label>Fecha</label><input type="date" id="em-fecha" value="${esc(r.fechaISO || '')}"></div>` +
+    campoTexto('em-placa', 'Placa', r.placa) +
+    campoTexto('em-nombre', 'Nombre del cliente', r.nombre) +
+    campoTexto('em-aceite', 'Aceite utilizado', r.aceite) +
+    campoTexto('em-cantidad', 'Cantidad de aceite', r.cantidad) +
+    campoTexto('em-filtroaceite', 'Filtro de aceite', r.filtroAceite) +
+    campoTexto('em-filtroaire', 'Filtro de aire', r.filtroAire) +
+    campoTexto('em-filtropetroleo', 'Filtro de petróleo', r.filtroPetroleo) +
+    campoTexto('em-km', 'Kilometraje actual', r.km) +
+    campoTexto('em-proxcambio', 'Próximo cambio (Km)', r.proxCambio) +
+    campoTexto('em-observaciones', 'Observaciones', r.observaciones);
+  editModalOverlay.classList.add('show');
+}
+async function buscarClientes_(q) {
+  const cont = document.getElementById('cl-historial');
+  try {
+    const data = await api('clientes', { placa: q });
+    if (!data.ok) throw new Error();
+    CL_RESULTADOS = data.registros;
+    cont.innerHTML = data.registros.length ? data.registros.map((r, i) => `
+        <div class="venta-row"><div><div class="who">${esc(r.nombre)} — ${esc(r.placa)}</div><div class="when">${esc(r.fecha)} · Km: ${esc(r.km||'—')} · Próx: ${esc(r.proxCambio||'—')}</div>
+        <div style="display:flex;gap:8px;margin-top:6px;"><button type="button" class="btn-mini" data-cl-sticker="${i}">🏷️ Ver sticker</button><button type="button" class="btn-mini" data-cl-editar="${i}">✏️ Editar</button></div></div></div>
+      `).join('') : '<div class="empty-note">Sin resultados.</div>';
+    cont.querySelectorAll('[data-cl-sticker]').forEach(b => b.addEventListener('click', () => generarYCompartirSticker(servicioDesdeResultadoCliente_(CL_RESULTADOS[Number(b.dataset.clSticker)]))));
+    cont.querySelectorAll('[data-cl-editar]').forEach(b => b.addEventListener('click', () => abrirModalCliente(CL_RESULTADOS[Number(b.dataset.clEditar)])));
+  } catch(e) {
+    cont.innerHTML = '<div class="empty-note">No se pudo cargar (¿ya actualizaste el Apps Script?).</div>';
+  }
+}
 document.getElementById('cl-buscar-placa').addEventListener('input', (e) => {
   clearTimeout(clBuscarTimeout);
-  const placa = e.target.value.trim();
+  const q = e.target.value.trim();
   const cont = document.getElementById('cl-historial');
-  if (!placa) { cont.innerHTML = '<div class="empty-note">Escribe una placa arriba para ver su historial.</div>'; return; }
-  clBuscarTimeout = setTimeout(async () => {
-    try {
-      const data = await api('clientes', { placa });
-      if (!data.ok) throw new Error();
-      cont.innerHTML = data.registros.length ? data.registros.map(r => `
-        <div class="venta-row"><div><div class="who">${esc(r.nombre)} — ${esc(r.placa)}</div><div class="when">${r.fecha} · Km: ${r.km||'—'} · Próx: ${r.proxCambio||'—'}</div></div></div>
-      `).join('') : '<div class="empty-note">Sin historial para esa placa.</div>';
-    } catch(e) {
-      cont.innerHTML = '<div class="empty-note">No se pudo cargar (¿ya actualizaste el Apps Script?).</div>';
-    }
-  }, 400);
+  if (!q) { CL_RESULTADOS = []; cont.innerHTML = '<div class="empty-note">Escribe una placa o un nombre arriba para ver su historial.</div>'; return; }
+  clBuscarTimeout = setTimeout(() => buscarClientes_(q), 400);
 });
 
 // ---------------- LOGIN ----------------
