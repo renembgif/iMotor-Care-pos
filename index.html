@@ -493,6 +493,28 @@ button{ cursor:pointer; }
 .li-qty input.qty-edit{width:58px;text-align:center;font-weight:700;border:1.5px solid var(--line);border-radius:6px;padding:6px 2px;background:#fff;color:inherit;}
 .li-qty input.qty-edit:focus{outline:2px solid var(--jade,#00cabe);}
 .li-name small b{color:var(--jade-deep,#0a8f88);}
+/* v17.1 · Nueva venta en móvil: los totales van AL FINAL del formulario (ya no flotan sobre los campos) y todo se recorre con scroll normal.
+   Solo aplica en pantallas de hasta 820 px (las mismas que usan la barra inferior); en PC no cambia nada. */
+@media (max-width:820px){
+  #view-venta{ padding-bottom:calc(28px + env(safe-area-inset-bottom)); }
+  #view-venta .venta-layout{ grid-template-columns:minmax(0,1fr); }
+  #view-venta .venta-layout > div{ min-width:0; }
+  #view-venta .totales-box{ position:static; margin-top:4px; }
+  #view-venta input, #view-venta select{ font-size:16px; }               /* iOS Safari no hace zoom al enfocar un campo */
+  #view-venta .cliente-row{ flex-wrap:wrap; }
+  #view-venta .cliente-row > label{ flex:1 1 100%; white-space:normal !important; }
+  #view-venta .cliente-row > input, #view-venta .cliente-row > select{ flex:1 1 150px; min-width:0; max-width:100%; box-sizing:border-box; }
+  #view-venta .line-item{ flex-wrap:wrap; row-gap:8px; }
+  #view-venta .line-item .li-name{ flex:1 1 100%; }                       /* el nombre ocupa toda la fila; cantidad y total pasan debajo */
+  #view-venta .li-qty{ margin-right:auto; }
+  #view-venta .li-total{ width:auto; min-width:70px; white-space:nowrap; }
+  #view-venta #v-comprobante{ flex:1 1 100%; }                            /* el texto completo "Nota de Venta / Sin Comprobante" ya no se corta */
+}
+/* v17.1 · Editar conciliación (TC SUNAT) */
+.conc-info{ background:#f6f4ee; border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px; margin-bottom:12px; }
+.conc-info div{ display:flex; justify-content:space-between; gap:10px; padding:2px 0; }
+.conc-info b{ font-family:var(--font-mono); text-align:right; }
+.conc-nota{ font-size:12px; color:var(--text-dim); margin:0 0 12px; }
 </style>
 </head>
 <body>
@@ -1174,6 +1196,10 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
         envasesAbiertos: numIn(document.getElementById('em-envases').value),
         litrosPorEnvase: numIn(document.getElementById('em-litros').value),
         codigoGranel: document.getElementById('em-granel').value.trim() };
+    } else if (editModalContext.tipo === 'conciliacion') {
+      const tc = numIn(document.getElementById('em-tcconc').value);
+      if (!(tc >= 1 && tc <= 10)) throw new Error('Ingresa un TC SUNAT válido (entre 1 y 10, ej. 3.361).');
+      body = { accion: 'editarTcSunat', llave: editModalContext.llave, tcSunat: tc };
     } else if (editModalContext.tipo === 'cliente') {
       body = { ...body, accion: 'editarCliente',
         fecha: document.getElementById('em-fecha').value,
@@ -1198,19 +1224,23 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
     const d = await api(null, {}, 'POST', body);
     if (!d || !d.ok) throw new Error((d && d.error) || 'No se pudieron guardar los cambios.');
 
-    editModalMsg.textContent = '✓ Cambios guardados correctamente'; editModalMsg.className = 'sale-msg ok';
+    editModalMsg.textContent = (editModalContext.tipo === 'conciliacion')
+      ? `✓ TC SUNAT guardado · ${d.estado} · Base ${fmt(d.base)} · IGV ${fmt(d.igv)} · Total ${fmt(d.total)} · Dif. por TC ${fmt(d.diferencia)}`
+      : '✓ Cambios guardados correctamente';
+    editModalMsg.className = 'sale-msg ok';
     const tipoGuardado = editModalContext.tipo;
     // Refresca la fila/lista correspondiente antes de cerrar, para que ya se vea el dato corregido
     if (tipoGuardado === 'venta') { await cargarVentasHistorial(); await cargarProductos(); }
     if (tipoGuardado === 'compra') { await cargarHistorialCompras(); await cargarProductos(); }
     if (tipoGuardado === 'producto') { await cargarProductos(); }
+    if (tipoGuardado === 'conciliacion') { await cargarHistorialCompras(); await cargarResumen(); }   // recarga la conciliación y el Resumen SUNAT con el TC nuevo
     if (tipoGuardado === 'cliente') {
       try { const dc = await api('clientes'); if (dc.ok) CLIENTES_CACHE = dc.registros; } catch(e) {}
       const q = document.getElementById('cl-buscar-placa').value.trim(); if (q) await buscarClientes_(q);
     }
     if (tipoGuardado === 'conversion') { await cargarHistorialConversiones(); await cargarProductos(); }
 
-    setTimeout(() => { editModalOverlay.classList.remove('show'); }, 700);
+    setTimeout(() => { editModalOverlay.classList.remove('show'); }, tipoGuardado === 'conciliacion' ? 2500 : 700);
   } catch (err) {
     // NO cerrar el modal: se mantienen todos los datos que el usuario estaba editando
     editModalMsg.textContent = '✕ ' + (err && err.message ? err.message : 'No se pudieron guardar los cambios. Inténtalo nuevamente.');
@@ -2273,6 +2303,7 @@ document.getElementById('cg-guardar').addEventListener('click', async () => {
 
 // ---------------- CONCILIACIÓN SUNAT (agrupa Compras por Llave normalizada) ----------------
 // (Se muestra en la sección "Resumen SUNAT", con el mismo mes que se elige arriba. La lógica de agrupación/estados no cambió.)
+let CONC_GRUPOS = {};   // comprobantes del período mostrado (para "Editar conciliación")
 function renderConciliacionSunat(compras){
   const cont = document.getElementById('cg-conciliacion');
   if (!cont) return;
@@ -2280,28 +2311,35 @@ function renderConciliacionSunat(compras){
   compras.forEach(c => {
     if (!c.comprobante || c.tipoMovimiento === 'Anulado') return;
     const llave = c.llave || c.comprobante.toUpperCase().trim();
-    if (!grupos[llave]) grupos[llave] = { fecha:c.fecha, proveedor:c.proveedor, comprobante:c.comprobante, moneda:c.moneda, esNC:false, tieneTcSunat:false, totalComercial:0, totalSunat:0 };
+    if (!grupos[llave]) grupos[llave] = { llave, fecha:c.fecha, proveedor:c.proveedor, comprobante:c.comprobante, moneda:c.moneda, esNC:false, tieneTcSunat:false, totalComercial:0, totalSunat:0, montoUsd:0, tcComercial:c.tipoCambio, tcSunat:'' };
     const g = grupos[llave];
+    g.montoUsd += Number(c.montoOriginal)||0;
+    if (c.tcSunat) g.tcSunat = c.tcSunat;
     g.totalComercial += Number(c.montoTotal)||0;
     g.totalSunat += Number(c.totalSunat)||0;
     if (c.tipoDocumento === 'Nota de Crédito') g.esNC = true;
     if (c.tcSunat) g.tieneTcSunat = true;
   });
   const filas = Object.values(grupos).sort((a,b)=> new Date(b.fecha) - new Date(a.fecha));
+  CONC_GRUPOS = grupos;
   const resumen = document.getElementById('cg-conc-resumen');
   if (resumen) resumen.textContent = filas.length ? `${filas.length} comprobante(s) en el período` : '';
   cont.innerHTML = filas.length ? filas.map(g => {
     let estado = 'CUADRADO', clase='badge-ok';
     if (g.esNC) { estado='NOTA DE CRÉDITO'; clase='badge-info'; }
     else if (esDol(g.moneda) && !g.tieneTcSunat) { estado='REVISAR TC SUNAT'; clase='badge-warn'; }
+    // "Editar conciliación": en comprobantes en dólares que piden revisar el TC SUNAT o que muestran diferencia entre lo comercial y lo fiscal
+    const editable = esDol(g.moneda) && (estado === 'REVISAR TC SUNAT' || Math.abs(g.totalComercial - g.totalSunat) > 0.005);
     return `<div class="list-row">
       <div class="lr-main">
         <div class="lr-title">${esc(g.comprobante)} — ${esc(g.proveedor||'')}</div>
         <div class="lr-sub">${new Date(g.fecha).toLocaleDateString('es-PE')} · Comercial ${fmt(g.totalComercial)} · Fiscal ${fmt(g.totalSunat)}</div>
       </div>
       <span class="badge-anulado ${clase}" style="position:static;">${estado}</span>
+      ${editable ? `<div class="lr-actions"><button type="button" class="btn-mini" data-conc-editar="${esc(g.llave)}">✏️ Editar conciliación</button></div>` : ''}
     </div>`;
   }).join('') : '<div class="empty-note">Sin comprobantes para conciliar en este período.</div>';
+  cont.querySelectorAll('[data-conc-editar]').forEach(b => b.addEventListener('click', () => { const g = CONC_GRUPOS[b.dataset.concEditar]; if (g) abrirModalConciliacion(g); }));
 }
 function rangoDeMes(periodo){   // 'yyyy-MM' → primer y último día
   const [y,m] = periodo.split('-').map(Number);
@@ -2645,6 +2683,41 @@ function abrirModalCliente(r) {
     campoTexto('em-observaciones', 'Observaciones', r.observaciones);
   editModalOverlay.classList.add('show');
 }
+// ---------------- EDITAR CONCILIACIÓN (TC SUNAT verificado a mano en SUNAT) ----------------
+// La Web NO consulta SUNAT: el usuario escribe el TC que ya verificó. Se guarda en 'Conciliación SUNAT' (vía Apps Script) y las fórmulas del Sheet
+// recalculan Base, IGV, Total, Diferencia y Estado. El comprobante original (Compras y Gastos) no se modifica.
+function calcFiscalConc_(g, tc){   // misma cuenta que la hoja: Base = ROUND(ROUND(US$/1.18,2) × TC, 2); Total = ROUND(US$ × TC, 2)
+  const total = round2(g.montoUsd * tc), base = round2(round2(g.montoUsd / 1.18) * tc);
+  return { total, base, igv: round2(total - base) };
+}
+function abrirModalConciliacion(g) {
+  editModalContext = { tipo: 'conciliacion', llave: g.llave };
+  editModalTitle.textContent = 'Editar conciliación';
+  editModalMsg.textContent = '';
+  const tcActual = g.tcSunat ? String(g.tcSunat) : '';
+  editModalBody.innerHTML =
+    `<div class="conc-info">
+      <div><span>Comprobante</span><b>${esc(g.comprobante)}</b></div>
+      <div><span>Proveedor</span><b>${esc(g.proveedor||'')}</b></div>
+      <div><span>Fecha</span><b>${new Date(g.fecha).toLocaleDateString('es-PE')}</b></div>
+      <div><span>Monto en dólares</span><b>US$ ${g.montoUsd.toFixed(2)}</b></div>
+      <div><span>TC comercial registrado</span><b>${g.tcComercial ? esc(String(g.tcComercial)) : '—'}</b></div>
+      <div><span>TC SUNAT actual</span><b>${tcActual ? esc(tcActual) : 'sin registrar'}</b></div>
+      <div><span>Total comercial / fiscal actual</span><b>${fmt(g.totalComercial)} / ${fmt(g.totalSunat)}</b></div>
+    </div>
+    <p class="conc-nota">Escribe el <b>TC SUNAT</b> que verificaste en SUNAT para este comprobante. Solo se guarda en la conciliación; el comprobante original no se modifica.</p>
+    <div class="field"><label>TC SUNAT (S/ por US$)</label><input type="text" inputmode="decimal" id="em-tcconc" value="${esc(tcActual)}" placeholder="ej. 3.361" autocomplete="off"></div>
+    <div class="conc-info" id="em-conc-prev"></div>`;
+  const prev = () => {
+    const tc = numIn(document.getElementById('em-tcconc').value), box = document.getElementById('em-conc-prev');
+    if (!(tc >= 1 && tc <= 10)) { box.innerHTML = '<div><span>Con este TC</span><b>—</b></div>'; return; }
+    const f = calcFiscalConc_(g, tc);
+    box.innerHTML = `<div><span>Base SUNAT</span><b>${fmt(f.base)}</b></div><div><span>IGV SUNAT</span><b>${fmt(f.igv)}</b></div><div><span>Total fiscal</span><b>${fmt(f.total)}</b></div><div><span>Dif. por TC (comercial − fiscal)</span><b>${fmt(round2(g.totalComercial - f.total))}</b></div>`;
+  };
+  document.getElementById('em-tcconc').addEventListener('input', () => { editModalMsg.textContent = ''; prev(); }); prev();
+  editModalOverlay.classList.add('show');
+}
+
 async function buscarClientes_(q) {
   const cont = document.getElementById('cl-historial');
   try {
