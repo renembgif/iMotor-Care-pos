@@ -2315,19 +2315,38 @@ function jvError_(msg) {
   document.getElementById('jv-reintentar').addEventListener('click', () => { jvCerrar_(); document.getElementById('jv-foto-input').click(); });
   document.getElementById('jv-manual').addEventListener('click', jvCerrar_);
 }
-// Reduce la foto del celular (varios MB) antes de enviarla: lado mayor 2000 px, JPEG. Corrige la orientación de la cámara.
+// Prepara la foto del celular antes de enviarla a JARVIS. Antes se achicaba demasiado (2000 px) y sin pedir buena calidad de
+// reescalado (el navegador usa "baja" por defecto): con el texto chico de una factura eso se veía borroso. Ahora: lado mayor
+// hasta 3000 px (Gemini no gana nada leyendo más resolución que eso) y reescalado en "alta calidad". Si la foto original ya
+// es razonable en tamaño y formato, se envía CASI intacta (sin recomprimir) para no perder nitidez de más.
+const JV_LADO_MAX = 3000;
+const JV_BYTES_OK_SIN_TOCAR = 4 * 1024 * 1024;    // si ya pesa esto o menos (y no hay que achicarla), se manda tal cual
+const JV_BYTES_OBJETIVO = 6.5 * 1024 * 1024;      // tope al recomprimir (el backend acepta hasta 7 MB ya decodificada)
+function jvArchivoABase64_(file) {
+  return new Promise((ok, fail) => { const r = new FileReader(); r.onload = () => ok(r.result.split(',')[1]); r.onerror = () => fail(new Error('lectura')); r.readAsDataURL(file); });
+}
 async function jvReducirImagen_(file) {
-  let bmp = null;
-  try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
-  catch (e) {
+  let bmp = null, w0 = 0, h0 = 0;
+  try {
+    bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    w0 = bmp.width; h0 = bmp.height;
+  } catch (e) {
     bmp = await new Promise((ok, fail) => { const u = URL.createObjectURL(file), im = new Image(); im.onload = () => { URL.revokeObjectURL(u); ok(im); }; im.onerror = () => fail(new Error('img')); im.src = u; });
+    w0 = bmp.naturalWidth; h0 = bmp.naturalHeight;
   }
-  const w0 = bmp.width || bmp.naturalWidth, h0 = bmp.height || bmp.naturalHeight, k = Math.min(1, 2000 / Math.max(w0, h0));
+  const yaEsJpegOPng = /^image\/(jpeg|png)$/i.test(file.type);
+  // Foto ya nítida y liviana (celulares modernos guardan JPEG orientado correctamente): se manda sin recomprimir.
+  if (yaEsJpegOPng && Math.max(w0, h0) <= JV_LADO_MAX && file.size <= JV_BYTES_OK_SIN_TOCAR) {
+    if (bmp.close) bmp.close();
+    return { imagen: await jvArchivoABase64_(file), mime: file.type };
+  }
+  const k = Math.min(1, JV_LADO_MAX / Math.max(w0, h0));
   const cv = document.createElement('canvas'); cv.width = Math.round(w0 * k); cv.height = Math.round(h0 * k);
-  const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(bmp, 0, 0, cv.width, cv.height);
+  const cx = cv.getContext('2d'); cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
+  cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(bmp, 0, 0, cv.width, cv.height);
   if (bmp.close) bmp.close();
-  let q = 0.85, url = cv.toDataURL('image/jpeg', q);
-  while (url.length * 0.75 > 4.5 * 1024 * 1024 && q > 0.4) { q -= 0.15; url = cv.toDataURL('image/jpeg', q); }
+  let q = 0.92, url = cv.toDataURL('image/jpeg', q);
+  while (url.length * 0.75 > JV_BYTES_OBJETIVO && q > 0.55) { q -= 0.07; url = cv.toDataURL('image/jpeg', q); }
   return { imagen: url.split(',')[1], mime: 'image/jpeg' };
 }
 async function jvAnalizar_(file) {
