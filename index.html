@@ -2349,13 +2349,32 @@ async function jvReducirImagen_(file) {
   while (url.length * 0.75 > JV_BYTES_OBJETIVO && q > 0.55) { q -= 0.07; url = cv.toDataURL('image/jpeg', q); }
   return { imagen: url.split(',')[1], mime: 'image/jpeg' };
 }
+// Antes de mandarla a analizar, se muestra la foto YA reducida (tal cual la va a recibir JARVIS) para que el usuario
+// confirme si se ve nítida o prefiere tomar otra. Así se detecta un problema de foto al toque, sin adivinar a ciegas.
 async function jvAnalizar_(file) {
   const ticket = ++JV.ticket;
   document.getElementById('jv-overlay').classList.add('show');
   if (!navigator.onLine) { jvError_('No hay conexión a internet. Puedes intentar de nuevo cuando vuelvas a tener señal o ingresar los datos manualmente.'); return; }
+  jvCargando_('Preparando la foto…');
+  let img;
+  try { img = await jvReducirImagen_(file); }
+  catch (e) { if (ticket !== JV.ticket) return; jvError_('La imagen no se pudo procesar. Elige otra foto o ingresa los datos manualmente.'); return; }
+  if (ticket !== JV.ticket) return;
+  jvVistaPrevia_(img, ticket);
+}
+function jvVistaPrevia_(img, ticket) {
+  const kb = Math.round(img.imagen.length * 0.75 / 1024);
+  document.getElementById('jv-cuerpo').innerHTML = `
+    <p style="margin:0 0 10px;font-size:13px;color:var(--text-dim);">Así de nítida se va a enviar la foto (haz zoom con dos dedos si quieres revisar el detalle). Si se ve borrosa, mejor toma otra foto con buena luz y bien enfocada.</p>
+    <div style="border:1.5px solid var(--line);border-radius:10px;overflow:auto;max-height:52vh;background:#f4f2ec;"><img src="data:${img.mime};base64,${img.imagen}" style="width:100%;display:block;"></div>
+    <p style="margin:8px 0 0;font-size:11.5px;color:var(--text-dim);">${kb} KB</p>
+    <div class="jv-acciones"><button type="button" class="btn-primary" id="jv-usar-foto">Se ve bien, analizar</button><button type="button" class="btn-sm" id="jv-otra-foto">📷 Elegir otra foto</button></div>`;
+  document.getElementById('jv-otra-foto').addEventListener('click', () => { jvCerrar_(); document.getElementById('jv-foto-input').click(); });
+  document.getElementById('jv-usar-foto').addEventListener('click', () => jvEnviarAAnalizar_(img, ticket));
+}
+async function jvEnviarAAnalizar_(img, ticket) {
   jvCargando_('Analizando factura…');
   try {
-    const img = await jvReducirImagen_(file);
     const d = await Promise.race([
       api('analizarFactura', {}, 'POST', img),
       new Promise((_, rej) => setTimeout(() => rej(new Error('tiempo')), 90000))
