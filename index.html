@@ -515,38 +515,6 @@ button{ cursor:pointer; }
 .conc-info div{ display:flex; justify-content:space-between; gap:10px; padding:2px 0; }
 .conc-info b{ font-family:var(--font-mono); text-align:right; }
 .conc-nota{ font-size:12px; color:var(--text-dim); margin:0 0 12px; }
-/* v17.2 · JARVIS · Etapa 1 · Foto de factura */
-.jv-bar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 14px; }
-.jv-btn{ width:auto !important; padding:10px 18px !important; }
-.jv-hint{ font-size:12px; color:var(--text-dim); flex:1 1 180px; }
-#jv-overlay .modal-box{ max-width:560px; }
-#jv-overlay .field{ margin-bottom:10px; }
-#jv-overlay .field input, #jv-overlay .field select, .jv-linea select{
-  background:#fff; color:var(--text); border:1.5px solid var(--line); width:100%; padding:11px 12px; border-radius:8px; font-size:14px; box-sizing:border-box; min-width:0;
-}
-#jv-overlay .field input:focus, #jv-overlay .field select:focus, .jv-linea select:focus{ border-color:var(--jade); box-shadow:0 0 0 3px rgba(0,217,163,.15); outline:none; }
-#jv-overlay .field label{ color:var(--jade-deep); }
-.jv-badge{ display:inline-block; background:#fff4d6; color:#8a5a00; border:1px solid #f0c66b; border-radius:999px; padding:3px 10px; font-size:11.5px; font-weight:800; white-space:nowrap; }
-.jv-aviso{ background:#fffaf0; border:1px solid #f0c66b; border-radius:8px; padding:10px 12px; font-size:12.5px; margin-bottom:12px; line-height:1.45; }
-.jv-adv{ background:#fff1ee; border:1px solid #f3b9ae; color:#8a2a1a; border-radius:8px; padding:8px 12px; font-size:12.5px; margin-bottom:10px; }
-.jv-sec{ font-size:11.5px; font-weight:800; color:var(--jade-deep); text-transform:uppercase; letter-spacing:.08em; margin:14px 0 8px; }
-.jv-fila2{ display:flex; gap:10px; } .jv-fila2 > .field{ flex:1 1 0; min-width:0; }
-.jv-linea{ border:1.5px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:10px; background:#fff; }
-.jv-linea.jv-off{ opacity:.45; }
-.jv-linea.jv-ok{ border-color:var(--jade); background:#f3fdf9; }
-.jv-det{ font-size:12.5px; color:var(--text-dim); margin-bottom:8px; line-height:1.4; word-break:break-word; }
-.jv-det b{ color:var(--text); }
-.jv-chips{ display:flex; gap:6px; flex-wrap:wrap; margin:6px 0 8px; }
-.jv-nota{ font-size:11.5px; color:var(--text-dim); margin:2px 0 6px; }
-.jv-inc{ display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-dim); }
-.jv-inc input{ width:auto !important; }
-.jv-cargando{ text-align:center; padding:26px 8px 10px; }
-.jv-spin{ width:38px; height:38px; margin:0 auto 12px; border:4px solid #dfe8e4; border-top-color:var(--jade); border-radius:50%; animation:jvgira 0.9s linear infinite; }
-@keyframes jvgira{ to{ transform:rotate(360deg); } }
-.jv-acciones{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
-.jv-acciones .btn-primary{ flex:2 1 200px; width:auto; }
-.jv-acciones .btn-sm{ flex:1 1 100px; padding:12px; font-size:13px; }
-@media (max-width:820px){ #jv-overlay{ padding:10px; } #jv-overlay .modal-box{ padding:16px; max-height:94vh; } #jv-overlay input, #jv-overlay select{ font-size:16px !important; } }
 </style>
 </head>
 <body>
@@ -584,6 +552,8 @@ button{ cursor:pointer; }
     <a href="#inventario" class="nav-item" data-view="inventario"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-4.7L21 8l-9 4.7L3 8z"/><path d="M3 8v8l9 4.7 9-4.7V8"/><path d="M12 12.7V21"/></svg></span> Inventario</a>
     <a href="#compras" class="nav-item" data-view="compras"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8V6a5.5 5.5 0 0 1 11 0v2"/><path d="M4.8 8h14.4l-1.1 12.2a1.5 1.5 0 0 1-1.5 1.3H7.4a1.5 1.5 0 0 1-1.5-1.3z"/></svg></span> Compras y gastos</a>
     <a href="#caja" class="nav-item" data-view="caja"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="13" rx="2"/><path d="M2.5 10.5h19"/><circle cx="7" cy="14.5" r="1.3"/></svg></span> Caja</a>
+    <a href="#compromisos" class="nav-item" data-view="compromisos"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.3"/><path d="M12 7v5l3.3 2"/></svg></span> Próximos pagos</a>
+    <a href="#socios" class="nav-item" data-view="socios"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3.2"/><circle cx="16" cy="9.3" r="2.6"/><path d="M2.7 20v-1.4A4.4 4.4 0 0 1 7.1 14.2h2.8a4.4 4.4 0 0 1 4.4 4.4V20"/><path d="M15.3 14.5a4 4 0 0 1 5.9 3.5V20"/></svg></span> Socios</a>
     <a href="#conversiones" class="nav-item" data-view="conversiones"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12a9.5 9.5 0 0 1 16-6.9l2 1.9"/><path d="M20.5 3v4.5H16"/><path d="M21.5 12a9.5 9.5 0 0 1-16 6.9l-2-1.9"/><path d="M3.5 21v-4.5H8"/></svg></span> Conversiones</a>
     <a href="#deudores" class="nav-item" data-view="deudores"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 2.3h6a1 1 0 0 1 1 1V6H8V3.3a1 1 0 0 1 1-1z"/><path d="M8.3 11h7.4M8.3 14.3h7.4M8.3 17.6h4.4"/></svg></span> Deudores</a>
     <a href="#resumen" class="nav-item" data-view="resumen"><span class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8.3h8M8 12h8M8 15.7h5"/></svg></span> Resumen SUNAT</a>
@@ -785,8 +755,6 @@ button{ cursor:pointer; }
       <div class="topline"><h2>Compras y gastos</h2></div>
       <div class="panel">
         <div class="panel-body" style="padding:16px 18px;">
-          <div class="jv-bar"><button type="button" class="btn-primary jv-btn" id="jv-foto-btn">📷 Foto de factura</button><span class="jv-hint">JARVIS lee la foto y te propone los datos. Tú revisas y confirmas; si falla, sigues con el registro manual.</span></div>
-          <input type="file" id="jv-foto-input" accept="image/*" style="display:none">
           <p style="margin:0 0 12px;color:var(--text-dim);font-size:12.5px;">Si es mercadería (tiene producto), el stock sube automático. Si es un gasto, deja el producto vacío.</p>
           <div class="search-box" style="margin-bottom:8px;"><input type="text" id="cg-search" placeholder="Buscar producto (o deja vacío si es un gasto)" autocomplete="off"></div>
           <div class="search-results" id="cg-results"></div>
@@ -817,6 +785,15 @@ button{ cursor:pointer; }
           </div>
           <div class="cliente-row" id="cg-tcsunat-row" style="display:none;"><input type="number" step="0.001" id="cg-tcsunat" placeholder="TC SUNAT (opcional, del comprobante en dólares)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></div>
           <div class="cliente-row"><input type="number" id="cg-monto" placeholder="Monto (con IGV)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></div>
+          <!-- V18: Forma de Pago (Excel V17 FINAL) — Efectivo/Yape/Transferencia caen directo a Caja; Crédito Proveedor/Socio generan un Compromiso de Pago y no tocan Caja. -->
+          <div class="cliente-row">
+            <select id="cg-formapago" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+              <option value="Efectivo">Efectivo</option><option value="Yape">Yape</option><option value="Transferencia">Transferencia</option>
+              <option value="Crédito Proveedor">Crédito Proveedor</option><option value="Socio">Pagado por un socio</option>
+            </select>
+          </div>
+          <div class="cliente-row" id="cg-socio-row" style="display:none;"><input type="text" id="cg-socio" placeholder="¿Qué socio pagó?" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></div>
+          <div class="cliente-row" id="cg-vencimiento-row" style="display:none;"><input type="date" id="cg-vencimiento" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"><span class="empty-note" style="flex:1;font-size:11px;align-self:center;">Fecha de vencimiento (opcional; si la dejas vacía se usa la fecha de la compra)</span></div>
           <label class="chk-mantener"><input type="checkbox" id="cg-mantener" checked> Mantener fecha, proveedor, comprobante y moneda para la siguiente compra</label>
           <button class="btn-primary" id="cg-guardar" style="width:auto;padding:10px 20px;">Registrar</button>
           <div class="sale-msg" id="cg-msg"></div>
@@ -829,6 +806,17 @@ button{ cursor:pointer; }
     <section class="view" id="view-caja">
       <div class="topline"><h2>Caja</h2></div>
       <div class="empty-note" style="margin-bottom:14px;font-size:12px;">Control y cuadre de ventas — cuánto se vendió y cuánto entró por cada medio de pago.</div>
+
+      <!-- V18: Caja real (dinero real disponible del negocio) — jala sola de la hoja 'Caja' del Excel V17 FINAL -->
+      <div class="panel" style="margin-bottom:14px;">
+        <div class="panel-head">💵 Caja — dinero real disponible</div>
+        <div class="stat-grid" style="padding:14px 18px 4px;">
+          <div class="stat-card"><div class="sc-label">Entradas</div><div class="sc-value" id="cjr-entradas">—</div></div>
+          <div class="stat-card"><div class="sc-label">Salidas</div><div class="sc-value" id="cjr-salidas">—</div></div>
+          <div class="stat-card"><div class="sc-label">Saldo disponible</div><div class="sc-value" id="cjr-saldo">—</div></div>
+        </div>
+        <div class="panel-body" style="padding:0;" id="cjr-movimientos"><div class="empty-note">Cargando…</div></div>
+      </div>
 
       <div class="cliente-row" style="align-items:center;flex-wrap:wrap;">
         <div class="tabs-mini" id="cj-tabs" style="margin-bottom:0;">
@@ -887,6 +875,101 @@ button{ cursor:pointer; }
             <div class="cuadre-dif" id="cj-dif-yape">Diferencia: S/ 0.00</div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ---------- PRÓXIMOS PAGOS (Compromisos de Pago) V18 ---------- -->
+    <section class="view" id="view-compromisos">
+      <div class="topline"><h2>Próximos pagos</h2></div>
+      <div class="empty-note" style="margin-bottom:14px;font-size:12px;">Proveedores, socios, SUNAT, alquiler, servicios y otros compromisos — según la hoja "Compromisos de Pago" del Excel.</div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="sc-label">🔴 Vencidos</div><div class="sc-value" id="cp-count-vencidos">—</div></div>
+        <div class="stat-card"><div class="sc-label">🟡 Próximos 7 días</div><div class="sc-value" id="cp-count-proximos">—</div></div>
+        <div class="stat-card"><div class="sc-label">🟢 Pagados / al día</div><div class="sc-value" id="cp-count-ok">—</div></div>
+        <div class="stat-card"><div class="sc-label">Total pendiente</div><div class="sc-value" id="cp-total-pendiente">—</div></div>
+      </div>
+
+      <div class="cliente-row" style="align-items:center;flex-wrap:wrap;">
+        <div class="tabs-mini" id="cp-tabs" style="margin-bottom:0;">
+          <button class="tab-mini active" data-estado="">Todos</button>
+          <button class="tab-mini" data-estado="Vencido">Vencidos</button>
+          <button class="tab-mini" data-estado="Pendiente">Próximos</button>
+          <button class="tab-mini" data-estado="Pagado">Pagados</button>
+        </div>
+        <select id="cp-filtro-tipo" style="margin-left:auto;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:12.5px;">
+          <option value="">Todos los tipos</option>
+          <option value="Proveedor">Proveedor</option><option value="Socio">Socio</option><option value="SUNAT">SUNAT</option>
+          <option value="Alquiler">Alquiler</option><option value="Servicio">Servicio</option><option value="Otro">Otro</option>
+        </select>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">Nuevo compromiso manual (Alquiler, Servicio, SUNAT, Otro, o un Proveedor/Socio que no nace de una compra)</div>
+        <div class="panel-body" style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;">
+          <div class="cliente-row">
+            <select id="cp-tipo" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+              <option value="Alquiler">Alquiler</option><option value="Servicio">Servicio</option><option value="SUNAT">SUNAT</option>
+              <option value="Proveedor">Proveedor</option><option value="Socio">Socio</option><option value="Otro">Otro</option>
+            </select>
+            <input type="text" id="cp-beneficiario" placeholder="Beneficiario / entidad" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+          </div>
+          <div class="cliente-row">
+            <input type="text" id="cp-categoria" placeholder="Categoría / descripción (ej. Luz, Alquiler local)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+            <input type="number" step="0.01" id="cp-monto" placeholder="Monto total (S/)" style="width:150px;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+          </div>
+          <div class="cliente-row">
+            <input type="date" id="cp-vencimiento" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+            <input type="text" id="cp-observacion" placeholder="Observación (opcional)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+          </div>
+          <button class="btn-primary" id="cp-guardar" style="width:auto;padding:10px 20px;">Registrar compromiso</button>
+          <div class="sale-msg" id="cp-msg"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">Compromisos</div>
+        <div class="panel-body" style="padding:0;" id="cp-lista"><div class="empty-note">Cargando…</div></div>
+      </div>
+    </section>
+
+    <!-- ---------- SOCIOS Y FINANCIAMIENTO V18 ---------- -->
+    <section class="view" id="view-socios">
+      <div class="topline"><h2>Socios y financiamiento</h2></div>
+      <div class="empty-note" style="margin-bottom:14px;font-size:12px;">Aportes, préstamos, pagos y retiros — según la hoja "Socios y Financiamiento" del Excel.</div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="sc-label">Pendiente del negocio</div><div class="sc-value" id="sc-pendiente-negocio">—</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">Por socio</div>
+        <div class="panel-body" style="padding:0;" id="sc-por-socio"><div class="empty-note">Cargando…</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">Registrar movimiento</div>
+        <div class="panel-body" style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;">
+          <div class="cliente-row">
+            <input type="text" id="sc-socio" placeholder="Nombre del socio" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+            <select id="sc-tipo" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+              <option value="Aporte">Aporte</option><option value="Préstamo">Préstamo</option>
+              <option value="Pago/Devolución al Socio">Pago/Devolución al socio</option><option value="Retiro Personal">Retiro personal</option>
+            </select>
+          </div>
+          <div class="cliente-row">
+            <input type="number" step="0.01" id="sc-monto" placeholder="Monto (S/)" style="width:150px;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+            <label class="chk-mantener" id="sc-ingreso-row" style="flex:1;"><input type="checkbox" id="sc-ingreso" checked> El dinero sí entró/salió de Caja (destílda si el socio pagó/cobró directo, sin pasar por Caja)</label>
+          </div>
+          <input type="text" id="sc-observacion" placeholder="Observación (opcional)" style="padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+          <button class="btn-primary" id="sc-guardar" style="width:auto;padding:10px 20px;">Registrar</button>
+          <div class="sale-msg" id="sc-msg"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">Historial</div>
+        <div class="panel-body" style="padding:0;" id="sc-historial"><div class="empty-note">Cargando…</div></div>
       </div>
     </section>
 
@@ -992,6 +1075,8 @@ button{ cursor:pointer; }
   <button class="mas-item" data-view="clientes">&#128100; Clientes y vehículos</button>
   <button class="mas-item" data-view="compras">&#8595; Compras y gastos</button>
   <button class="mas-item" data-view="caja">&#128176; Caja</button>
+  <button class="mas-item" data-view="compromisos">&#128338; Próximos pagos</button>
+  <button class="mas-item" data-view="socios">&#129309; Socios</button>
   <button class="mas-item" data-view="conversiones">&#8635; Conversiones</button>
   <button class="mas-item" data-view="deudores">&#128203; Deudores</button>
   <button class="mas-item" data-view="resumen">&#8801; Resumen SUNAT</button>
@@ -1041,13 +1126,6 @@ button{ cursor:pointer; }
     <button class="btn-primary" id="gv-sticker" style="margin-top:8px;display:none;background:transparent;color:var(--jade-deep);border:1.5px solid var(--jade);">Registrar servicio / sticker</button>
   </div>
 </div>
-<div id="jv-overlay" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-head"><span>📷 Foto de factura</span><button type="button" class="modal-x" id="jv-x" aria-label="Cerrar">&times;</button></div>
-    <div id="jv-cuerpo"></div>
-  </div>
-</div>
-
 <div id="edit-modal-overlay" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-head"><span id="edit-modal-title">Editar</span><button type="button" class="modal-x" id="edit-modal-close">&times;</button></div>
@@ -1183,6 +1261,19 @@ function abrirModalConversion(c) {
     `<div class="empty-note" style="font-size:12px;">Al guardar, el stock del envase y del granel se corrige solo; no se duplica el movimiento.</div>`;
   editModalOverlay.classList.add('show');
 }
+// V18: registrar pago (total o parcial) de un Compromiso de Pago.
+function abrirModalPagoCompromiso(c) {
+  editModalContext = { tipo: 'pagoCompromiso', id: c.id };
+  editModalTitle.textContent = 'Registrar pago — ' + c.id;
+  editModalMsg.textContent = '';
+  editModalBody.innerHTML =
+    `<div class="empty-note" style="font-size:12.5px;margin-bottom:6px;">${esc(c.beneficiario)} · Saldo pendiente: ${fmt(c.saldoPendiente)}</div>` +
+    campoNumero('em-pago-monto', 'Monto a pagar (S/)', c.saldoPendiente) +
+    campoSelect('em-pago-medio', 'Medio de pago', ['Efectivo', 'Yape', 'Transferencia'], 'Efectivo') +
+    `<div class="field"><label>Fecha de pago</label><input type="date" id="em-pago-fecha" max="${hoyISO()}" value="${hoyISO()}"></div>` +
+    campoTexto('em-pago-obs', 'Observación (opcional)', '');
+  editModalOverlay.classList.add('show');
+}
 function abrirModalProducto(p) {
   editModalContext = { tipo: 'producto', fila: p.fila, huella: p.huella };
   editModalTitle.textContent = 'Editar producto';
@@ -1254,6 +1345,12 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
         km: document.getElementById('em-km').value.trim(),
         proxCambio: document.getElementById('em-proxcambio').value.trim(),
         observaciones: document.getElementById('em-observaciones').value.trim() };
+    } else if (editModalContext.tipo === 'pagoCompromiso') {
+      body = { accion: 'pagoCompromiso', idCompromiso: editModalContext.id,
+        monto: numIn(document.getElementById('em-pago-monto').value),
+        medioPago: document.getElementById('em-pago-medio').value,
+        fecha: document.getElementById('em-pago-fecha').value,
+        observacion: document.getElementById('em-pago-obs').value.trim() };
     } else if (editModalContext.tipo === 'producto') {
       body = { ...body, accion: 'editarProducto',
         nombre: document.getElementById('em-nombre').value.trim(),
@@ -1267,6 +1364,8 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
 
     editModalMsg.textContent = (editModalContext.tipo === 'conciliacion')
       ? `✓ TC SUNAT guardado · ${d.estado} · Base ${fmt(d.base)} · IGV ${fmt(d.igv)} · Total ${fmt(d.total)} · Dif. por TC ${fmt(d.diferencia)}`
+      : (editModalContext.tipo === 'pagoCompromiso')
+      ? `✓ Pago registrado · Saldo pendiente: ${fmt(d.saldoPendiente)} · Estado: ${d.estado}`
       : '✓ Cambios guardados correctamente';
     editModalMsg.className = 'sale-msg ok';
     const tipoGuardado = editModalContext.tipo;
@@ -1280,6 +1379,7 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
       const q = document.getElementById('cl-buscar-placa').value.trim(); if (q) await buscarClientes_(q);
     }
     if (tipoGuardado === 'conversion') { await cargarHistorialConversiones(); await cargarProductos(); }
+    if (tipoGuardado === 'pagoCompromiso') { await cargarCompromisos(); await cargarCajaReal(); }
 
     setTimeout(() => { editModalOverlay.classList.remove('show'); }, tipoGuardado === 'conciliacion' ? 2500 : 700);
   } catch (err) {
@@ -1407,7 +1507,9 @@ function goView(name) {
   if (name === 'ventas') cargarVentasHistorial();
   if (name === 'compras') cargarHistorialCompras();
   if (name === 'resumen') cargarResumen();
-  if (name === 'caja') cargarCaja();
+  if (name === 'caja') { cargarCaja(); cargarCajaReal(); }
+  if (name === 'compromisos') cargarCompromisos();
+  if (name === 'socios') cargarSocios();
   if (name === 'cotizaciones') cargarHistorialCotizaciones();
   if (name === 'conversiones') cargarHistorialConversiones();
   if (name === 'deudores') cargarDeudores();
@@ -2299,212 +2401,11 @@ const normTxt = t => String(t||'').toLowerCase().normalize('NFD').replace(/[\u03
   });
 })();
 
-// ---------------- JARVIS · ETAPA 1 · FOTO DE FACTURA ----------------
-// La IA PROPONE · el sistema VALIDA · el usuario CONFIRMA · el sistema GUARDA. El navegador nunca habla con Gemini ni conoce su clave:
-// la foto va a Apps Script (acción 'analizarFactura'), que consulta a Gemini y devuelve una propuesta. Al confirmar, cada línea se registra
-// con el mismo registro de Compras de siempre (acción 'compra'). Si algo falla, el registro manual sigue funcionando igual.
-let JV = { factura: null, ticket: 0, guardadas: {} };
-const JV_MSG_GENERICO = 'No pude analizar la factura. Puedes intentar nuevamente o ingresar los datos manualmente.';
-function jvCerrar_() { JV.ticket++; document.getElementById('jv-overlay').classList.remove('show'); document.getElementById('jv-cuerpo').innerHTML = ''; }
-function jvCargando_(txt) {
-  document.getElementById('jv-cuerpo').innerHTML = `<div class="jv-cargando"><div class="jv-spin"></div><div style="font-weight:800;">${esc(txt)}</div><div style="font-size:12px;color:var(--text-dim);margin-top:6px;">Puede tardar unos segundos.</div><div class="jv-acciones" style="justify-content:center;"><button type="button" class="btn-sm" id="jv-cancelar-carga">Cancelar</button></div></div>`;
-  document.getElementById('jv-cancelar-carga').addEventListener('click', jvCerrar_);
-}
-function jvError_(msg) {
-  document.getElementById('jv-cuerpo').innerHTML = `<div class="jv-adv" style="font-size:13.5px;">${esc(msg)}</div><div class="jv-acciones"><button type="button" class="btn-primary" id="jv-reintentar">📷 Intentar de nuevo</button><button type="button" class="btn-sm" id="jv-manual">Ingresar manualmente</button></div>`;
-  document.getElementById('jv-reintentar').addEventListener('click', () => { jvCerrar_(); document.getElementById('jv-foto-input').click(); });
-  document.getElementById('jv-manual').addEventListener('click', jvCerrar_);
-}
-// Prepara la foto del celular antes de enviarla a JARVIS. Antes se achicaba demasiado (2000 px) y sin pedir buena calidad de
-// reescalado (el navegador usa "baja" por defecto): con el texto chico de una factura eso se veía borroso. Ahora: lado mayor
-// hasta 3000 px (Gemini no gana nada leyendo más resolución que eso) y reescalado en "alta calidad". Si la foto original ya
-// es razonable en tamaño y formato, se envía CASI intacta (sin recomprimir) para no perder nitidez de más.
-const JV_LADO_MAX = 3000;
-const JV_BYTES_OK_SIN_TOCAR = 4 * 1024 * 1024;    // si ya pesa esto o menos (y no hay que achicarla), se manda tal cual
-const JV_BYTES_OBJETIVO = 6.5 * 1024 * 1024;      // tope al recomprimir (el backend acepta hasta 7 MB ya decodificada)
-function jvArchivoABase64_(file) {
-  return new Promise((ok, fail) => { const r = new FileReader(); r.onload = () => ok(r.result.split(',')[1]); r.onerror = () => fail(new Error('lectura')); r.readAsDataURL(file); });
-}
-async function jvReducirImagen_(file) {
-  let bmp = null, w0 = 0, h0 = 0;
-  try {
-    bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
-    w0 = bmp.width; h0 = bmp.height;
-  } catch (e) {
-    bmp = await new Promise((ok, fail) => { const u = URL.createObjectURL(file), im = new Image(); im.onload = () => { URL.revokeObjectURL(u); ok(im); }; im.onerror = () => fail(new Error('img')); im.src = u; });
-    w0 = bmp.naturalWidth; h0 = bmp.naturalHeight;
-  }
-  const yaEsJpegOPng = /^image\/(jpeg|png)$/i.test(file.type);
-  // Foto ya nítida y liviana (celulares modernos guardan JPEG orientado correctamente): se manda sin recomprimir.
-  if (yaEsJpegOPng && Math.max(w0, h0) <= JV_LADO_MAX && file.size <= JV_BYTES_OK_SIN_TOCAR) {
-    if (bmp.close) bmp.close();
-    return { imagen: await jvArchivoABase64_(file), mime: file.type };
-  }
-  const k = Math.min(1, JV_LADO_MAX / Math.max(w0, h0));
-  const cv = document.createElement('canvas'); cv.width = Math.round(w0 * k); cv.height = Math.round(h0 * k);
-  const cx = cv.getContext('2d'); cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
-  cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(bmp, 0, 0, cv.width, cv.height);
-  if (bmp.close) bmp.close();
-  let q = 0.92, url = cv.toDataURL('image/jpeg', q);
-  while (url.length * 0.75 > JV_BYTES_OBJETIVO && q > 0.55) { q -= 0.07; url = cv.toDataURL('image/jpeg', q); }
-  return { imagen: url.split(',')[1], mime: 'image/jpeg' };
-}
-// Antes de mandarla a analizar, se muestra la foto YA reducida (tal cual la va a recibir JARVIS) para que el usuario
-// confirme si se ve nítida o prefiere tomar otra. Así se detecta un problema de foto al toque, sin adivinar a ciegas.
-async function jvAnalizar_(file) {
-  const ticket = ++JV.ticket;
-  document.getElementById('jv-overlay').classList.add('show');
-  if (!navigator.onLine) { jvError_('No hay conexión a internet. Puedes intentar de nuevo cuando vuelvas a tener señal o ingresar los datos manualmente.'); return; }
-  jvCargando_('Preparando la foto…');
-  let img;
-  try { img = await jvReducirImagen_(file); }
-  catch (e) { if (ticket !== JV.ticket) return; jvError_('La imagen no se pudo procesar. Elige otra foto o ingresa los datos manualmente.'); return; }
-  if (ticket !== JV.ticket) return;
-  jvVistaPrevia_(img, ticket);
-}
-function jvVistaPrevia_(img, ticket) {
-  const kb = Math.round(img.imagen.length * 0.75 / 1024);
-  document.getElementById('jv-cuerpo').innerHTML = `
-    <p style="margin:0 0 10px;font-size:13px;color:var(--text-dim);">Así de nítida se va a enviar la foto (haz zoom con dos dedos si quieres revisar el detalle). Si se ve borrosa, mejor toma otra foto con buena luz y bien enfocada.</p>
-    <div style="border:1.5px solid var(--line);border-radius:10px;overflow:auto;max-height:52vh;background:#f4f2ec;"><img src="data:${img.mime};base64,${img.imagen}" style="width:100%;display:block;"></div>
-    <p style="margin:8px 0 0;font-size:11.5px;color:var(--text-dim);">${kb} KB</p>
-    <div class="jv-acciones"><button type="button" class="btn-primary" id="jv-usar-foto">Se ve bien, analizar</button><button type="button" class="btn-sm" id="jv-otra-foto">📷 Elegir otra foto</button></div>`;
-  document.getElementById('jv-otra-foto').addEventListener('click', () => { jvCerrar_(); document.getElementById('jv-foto-input').click(); });
-  document.getElementById('jv-usar-foto').addEventListener('click', () => jvEnviarAAnalizar_(img, ticket));
-}
-async function jvEnviarAAnalizar_(img, ticket) {
-  jvCargando_('Analizando factura…');
-  try {
-    const d = await Promise.race([
-      api('analizarFactura', {}, 'POST', img),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('tiempo')), 90000))
-    ]);
-    if (ticket !== JV.ticket) return;   // el usuario canceló mientras tanto
-    if (!d.ok || !d.factura) { jvError_(d && d.error ? d.error : JV_MSG_GENERICO); return; }
-    JV.factura = d.factura; JV.guardadas = {};
-    jvPropuesta_(d.factura);
-  } catch (e) {
-    if (ticket !== JV.ticket) return;
-    jvError_(JV_MSG_GENERICO);   // sin detalles técnicos para el usuario
-  }
-}
-const jvMon = () => (document.getElementById('jv-moneda') && document.getElementById('jv-moneda').value === 'Dolares') ? 'US$ ' : 'S/ ';
-const jvComp_ = s => { const t = String(s || '').toUpperCase().replace(/\s/g, ''), i = t.indexOf('-'); return i < 0 ? t : t.slice(0, i) + '-' + (Number(t.slice(i + 1)) || t.slice(i + 1)); };
-function jvOpcionesProducto_(sel) {
-  const ord = PRODUCTOS.slice().sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es'));
-  return `<option value=""${sel ? '' : ' selected'}>— Elige: producto o gasto —</option><option value="__GASTO__">Es un gasto (sin producto)</option>` +
-    ord.map(p => `<option value="${esc(p.codigo)}"${p.codigo === sel ? ' selected' : ''}>${esc(p.nombre)} (${esc(p.codigo)})</option>`).join('');
-}
-function jvPropuesta_(f) {
-  const lineas = f.items.map((it, i) => {
-    const sg = it.sugerencia, pre = sg && sg.preseleccionar ? sg.codigo : '';
-    const chips = (!pre && it.alternativas && it.alternativas.length) ? `<div class="jv-chips">${it.alternativas.map(a => `<button type="button" class="btn-mini" data-jv-chip="${i}" data-cod="${esc(a.codigo)}">Posible: ${esc(a.nombre)} (${a.motivo === 'codigo' ? 'coincide el código' : Math.round(a.score * 100) + '%'})</button>`).join('')}</div>` : '';
-    const impreso = it.igv_agregado ? `Impreso sin IGV: ${it.monto != null ? it.monto : '—'} → con IGV (×1.18, calculado): ${it.monto_con_igv}` : (it.monto != null ? `Impreso: ${it.monto}` : 'Monto no legible');
-    return `<div class="jv-linea" data-jv-linea="${i}">
-      <div class="jv-det">Detectado: <b>${esc(it.producto || '(sin descripción)')}</b>${it.codigo ? ' · cód. ' + esc(it.codigo) : ''}${it.unidad ? ' · ' + esc(it.unidad) : ''}${it.precio_unitario != null ? ' · P. unit. ' + it.precio_unitario : ''}${it.descuento ? ' · dscto. ' + it.descuento : ''} ${pre ? `<span class="jv-badge">✨ sugerido (${Math.round(sg.score * 100)}%)</span>` : ''}</div>
-      <select class="jv-prod" data-i="${i}">${jvOpcionesProducto_(pre)}</select>${chips}
-      <div class="jv-fila2" style="margin-top:8px;">
-        <div class="field jv-cant-wrap"><label>Cantidad</label><input type="number" step="any" inputmode="decimal" class="jv-cant" value="${it.cantidad != null ? it.cantidad : ''}"></div>
-        <div class="field"><label>Monto (con IGV)</label><input type="number" step="any" inputmode="decimal" class="jv-monto" value="${it.monto_con_igv != null ? it.monto_con_igv : ''}"></div>
-      </div>
-      <div class="jv-nota">${esc(impreso)}</div>
-      <label class="jv-inc"><input type="checkbox" class="jv-incl" checked> Incluir esta línea</label>
-    </div>`;
-  }).join('');
-  const cargos = f.cargos_adicionales.length ? `<div class="jv-aviso" style="background:#f3f7ff;border-color:#b9cdf3;"><b>Cargos adicionales detectados</b> (solo informativo; no se reparten entre los productos):<br>${f.cargos_adicionales.map(c => `${esc(c.concepto || 'Cargo')}: ${c.monto != null ? c.monto : '—'}`).join(' · ')}</div>` : '';
-  const advs = f.advertencias.length ? `<div class="jv-adv">⚠ ${f.advertencias.map(esc).join('<br>⚠ ')}</div>` : '';
-  document.getElementById('jv-cuerpo').innerHTML = `
-    <div class="jv-aviso"><span class="jv-badge">✨ Datos sugeridos por IA</span><br>Revisa y corrige todo antes de registrar. <b>No se guarda nada hasta que confirmes.</b></div>
-    ${advs}
-    <div class="jv-sec">Factura</div>
-    <div class="field"><label>Proveedor${f.ruc ? ' · RUC ' + esc(f.ruc) : ''}</label><input type="text" id="jv-prov" value="${esc(f.proveedor || '')}" placeholder="Proveedor"></div>
-    <div class="jv-fila2"><div class="field"><label>Fecha</label><input type="date" id="jv-fecha" value="${esc(f.fecha || '')}"></div>
-      <div class="field"><label>Tipo de documento</label><select id="jv-tipodoc"><option value="Factura"${f.tipo_documento !== 'Nota de Crédito' ? ' selected' : ''}>Factura</option><option value="Nota de Crédito"${f.tipo_documento === 'Nota de Crédito' ? ' selected' : ''}>Nota de Crédito</option></select></div></div>
-    <div class="field"><label>N° comprobante</label><input type="text" id="jv-comp" value="${esc(f.comprobante || '')}" placeholder="F001-12345"></div>
-    <div class="field" id="jv-rel-wrap" style="display:none;"><label>Documento relacionado (factura que corrige)</label><input type="text" id="jv-rel"></div>
-    <div class="jv-fila2"><div class="field"><label>Moneda</label><select id="jv-moneda"><option value="Soles"${f.moneda_web !== 'Dolares' ? ' selected' : ''}>Soles</option><option value="Dolares"${f.moneda_web === 'Dolares' ? ' selected' : ''}>Dólares</option></select></div>
-      <div class="field" id="jv-tc-wrap" style="display:none;"><label>Tipo de cambio (comercial)</label><input type="number" step="0.001" inputmode="decimal" id="jv-tc" placeholder="ej. 3.383"></div></div>
-    <div id="jv-dup"></div>
-    <div class="jv-sec">Líneas (${f.items.length})</div>
-    ${lineas || '<div class="jv-adv">No se detectaron líneas. Cancela e ingresa la compra manualmente.</div>'}
-    ${cargos}
-    <div class="conc-info" id="jv-control"></div>
-    <div class="jv-acciones"><button type="button" class="btn-primary" id="jv-confirmar">CONFIRMAR REGISTRO</button><button type="button" class="btn-sm" id="jv-cancelar">CANCELAR</button></div>
-    <div class="sale-msg" id="jv-msg"></div>`;
-  const cuerpo = document.getElementById('jv-cuerpo');
-  const refrescar = () => {
-    document.getElementById('jv-tc-wrap').style.display = document.getElementById('jv-moneda').value === 'Dolares' ? '' : 'none';
-    document.getElementById('jv-rel-wrap').style.display = document.getElementById('jv-tipodoc').value === 'Nota de Crédito' ? '' : 'none';
-    const comp = jvComp_(document.getElementById('jv-comp').value), previos = comp ? COMPRAS_HIST.filter(c => jvComp_(c.comprobante) === comp).length : 0;
-    document.getElementById('jv-dup').innerHTML = previos ? `<div class="jv-adv">⚠ Ya hay ${previos} registro(s) con este comprobante en el historial reciente. Revisa que no lo estés duplicando.</div>` : '';
-    let suma = 0;
-    cuerpo.querySelectorAll('.jv-linea').forEach(el => {
-      const sel = el.querySelector('.jv-prod').value, incl = el.querySelector('.jv-incl').checked;
-      el.classList.toggle('jv-off', !incl); el.classList.toggle('jv-ok', !!sel && sel !== '__GASTO__' && incl);
-      el.querySelector('.jv-cant-wrap').style.display = (sel === '__GASTO__') ? 'none' : '';
-      if (incl) suma += numIn(el.querySelector('.jv-monto').value) || 0;
-    });
-    const m = jvMon(), tot = f.total;
-    document.getElementById('jv-control').innerHTML = `<div><span>Suma de líneas incluidas</span><b>${m}${suma.toFixed(2)}</b></div>` +
-      (tot != null ? `<div><span>Total de la factura (leído)</span><b>${m}${tot.toFixed(2)}</b></div><div><span>Diferencia</span><b>${m}${(tot - suma).toFixed(2)}</b></div>` : '<div><span>Total de la factura</span><b>no legible</b></div>');
-  };
-  cuerpo.addEventListener('input', refrescar); cuerpo.addEventListener('change', refrescar);
-  cuerpo.querySelectorAll('[data-jv-chip]').forEach(b => b.addEventListener('click', () => { const el = cuerpo.querySelector(`.jv-prod[data-i="${b.dataset.jvChip}"]`); el.value = b.dataset.cod; refrescar(); }));
-  document.getElementById('jv-cancelar').addEventListener('click', jvCerrar_);
-  document.getElementById('jv-confirmar').addEventListener('click', jvConfirmar_);
-  refrescar();
-}
-async function jvConfirmar_() {
-  const msg = document.getElementById('jv-msg'), btn = document.getElementById('jv-confirmar'), f = JV.factura;
-  if (btn.disabled) return;
-  const err = t => { msg.textContent = t; msg.className = 'sale-msg err'; };
-  const prov = document.getElementById('jv-prov').value.trim(), comp = document.getElementById('jv-comp').value.trim(), fecha = document.getElementById('jv-fecha').value;
-  const moneda = document.getElementById('jv-moneda').value, tc = numIn(document.getElementById('jv-tc').value), tipodoc = document.getElementById('jv-tipodoc').value;
-  if (!prov) return err('Falta el proveedor.');
-  if (!comp) return err('Falta el número de comprobante.');
-  if (!fecha) return err('Falta la fecha.');
-  if (fecha > hoyISO()) return err('La fecha no puede ser futura.');
-  if (moneda === 'Dolares' && !(tc > 0)) return err('La factura es en dólares: ingresa el tipo de cambio comercial.');
-  const lineas = [];
-  let problema = '';
-  document.querySelectorAll('#jv-cuerpo .jv-linea').forEach(el => {
-    const i = Number(el.dataset.jvLinea); if (!el.querySelector('.jv-incl').checked) return;
-    const sel = el.querySelector('.jv-prod').value, cant = numIn(el.querySelector('.jv-cant').value), monto = numIn(el.querySelector('.jv-monto').value);
-    const nombre = 'Línea ' + (i + 1);
-    if (!sel) { problema = problema || `${nombre}: elige el producto o marca "Es un gasto".`; return; }
-    if (!(monto >= 0) || el.querySelector('.jv-monto').value === '') { problema = problema || `${nombre}: falta el monto.`; return; }
-    if (sel !== '__GASTO__' && !(cant > 0)) { problema = problema || `${nombre}: falta la cantidad.`; return; }
-    if (sel === '__GASTO__' && !(monto > 0)) { problema = problema || `${nombre}: un gasto necesita un monto mayor que 0.`; return; }
-    lineas.push({ i, el, sel, cant, monto });
-  });
-  if (problema) return err(problema);
-  if (!lineas.length) return err('No hay líneas incluidas para registrar.');
-  btn.disabled = true; let hechas = 0;
-  try {
-    for (const L of lineas) {
-      if (JV.guardadas[L.i]) { hechas++; continue; }   // reintento: las líneas ya guardadas no se repiten
-      msg.textContent = `Registrando línea ${hechas + 1} de ${lineas.length}…`; msg.className = 'sale-msg';
-      const esGasto = L.sel === '__GASTO__', it = f.items[L.i];
-      const d = await api(null, {}, 'POST', { accion: 'compra',
-        codigo: esGasto ? '' : L.sel, cantidad: esGasto ? 0 : L.cant, descripcion: esGasto ? (it.producto || 'Gasto de factura') : '',
-        proveedor: prov, comprobante: comp, moneda, tipoCambio: moneda === 'Dolares' ? tc : 1, montoOriginal: L.monto,
-        tipoMovimiento: esGasto ? 'Gasto' : (L.monto === 0 ? 'Bonificación' : 'Compra'), fecha, tipoDocumento: tipodoc,
-        documentoRelacionado: tipodoc === 'Nota de Crédito' ? document.getElementById('jv-rel').value : '', tcSunat: '' });
-      if (!d.ok) throw new Error(d.error || 'No se pudo registrar');
-      JV.guardadas[L.i] = true; hechas++; L.el.querySelectorAll('input,select').forEach(x => x.disabled = true); L.el.classList.add('jv-ok');
-    }
-    msg.textContent = `✓ ${hechas} línea(s) registrada(s) en Compras y Gastos`; msg.className = 'sale-msg ok';
-    await cargarProductos(); cargarHistorialCompras(); cargarProveedores();
-    setTimeout(jvCerrar_, 1600);
-  } catch (e) {
-    const n = Object.keys(JV.guardadas).length;
-    err((n ? `Se registraron ${n} línea(s); las demás no se pudieron guardar (${e.message}). Pulsa CONFIRMAR de nuevo para continuar con las que faltan.` : `No se pudo registrar: ${e.message}`));
-    btn.disabled = false; btn.textContent = n ? 'REINTENTAR LAS QUE FALTAN' : 'CONFIRMAR REGISTRO';
-  }
-}
-document.getElementById('jv-foto-btn').addEventListener('click', () => { document.getElementById('jv-foto-input').value = ''; document.getElementById('jv-foto-input').click(); });
-document.getElementById('jv-foto-input').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) jvAnalizar_(f); });
-document.getElementById('jv-x').addEventListener('click', jvCerrar_);
+document.getElementById('cg-formapago').addEventListener('change', () => {
+  const v = document.getElementById('cg-formapago').value;
+  document.getElementById('cg-socio-row').style.display = (v === 'Socio') ? 'flex' : 'none';
+  document.getElementById('cg-vencimiento-row').style.display = (v === 'Crédito Proveedor' || v === 'Socio') ? 'flex' : 'none';
+});
 
 document.getElementById('cg-guardar').addEventListener('click', async () => {
   const msg=document.getElementById('cg-msg'), btn=document.getElementById('cg-guardar');
@@ -2519,7 +2420,12 @@ document.getElementById('cg-guardar').addEventListener('click', async () => {
     fecha: document.getElementById('cg-fecha').value,
     tipoDocumento: document.getElementById('cg-tipodoc').value,
     documentoRelacionado: document.getElementById('cg-docrelacionado').value,
-    tcSunat: document.getElementById('cg-tcsunat').value };
+    tcSunat: document.getElementById('cg-tcsunat').value,
+    formaPago: document.getElementById('cg-formapago').value,
+    socio: document.getElementById('cg-socio').value.trim(),
+    vencimiento: document.getElementById('cg-vencimiento').value };
+  const formaPagoSel = body.formaPago;
+  if (formaPagoSel === 'Socio' && !body.socio) { msg.textContent='Indica qué socio pagó esta compra/gasto'; msg.className='sale-msg err'; return; }
   btn.disabled = true;
   try {
     const d = await api(null,{},'POST',{accion:'compra',...body});
@@ -2704,6 +2610,134 @@ document.getElementById('cj-tabs').addEventListener('click', (e) => {
 });
 document.getElementById('cj-input-semana').addEventListener('change', cargarCaja);
 document.getElementById('cj-input-mes').addEventListener('change', cargarCaja);
+
+// V18: Caja real (dinero real disponible) — solo lectura, jala de la hoja 'Caja' del Excel V17 FINAL.
+async function cargarCajaReal(){
+  const cont = document.getElementById('cjr-movimientos');
+  try {
+    const data = await api('cajaReal', {limite: 40});
+    const r = data.cajaReal.resumen;
+    document.getElementById('cjr-entradas').textContent = fmt(r.entradas);
+    document.getElementById('cjr-salidas').textContent = fmt(r.salidas);
+    document.getElementById('cjr-saldo').textContent = fmt(r.saldo);
+    const movs = data.cajaReal.movimientos || [];
+    cont.innerHTML = movs.length ? movs.map(m => `
+      <div class="venta-row"><div><div class="who">${m.tipo==='entrada'?'⬆':'⬇'} ${esc(m.concepto||m.origen)} — ${esc(m.origen)}</div>
+      <div class="when">${esc(m.detalle||'')}${m.medio?' · '+esc(m.medio):''} · ${fechaCorta_(m.fecha)}</div></div>
+      <div class="amt">${m.tipo==='entrada'?'+':'-'} ${fmt(m.monto)}</div></div>
+    `).join('') : '<div class="empty-note">Sin movimientos.</div>';
+  } catch(err){ cont.innerHTML = `<div class="empty-note">${esc(err.message)}</div>`; }
+}
+
+// ================= V18: PRÓXIMOS PAGOS (Compromisos de Pago) =================
+let CP_ESTADO_FILTRO = '';
+let CP_ITEMS_CACHE = {};
+function abrirModalPagoCompromisoPorId(id){ const c = CP_ITEMS_CACHE[id]; if (c) abrirModalPagoCompromiso(c); }
+function semaforoTexto_(estado, dias) {
+  if (estado === 'Pagado') return '🟢 Pagado';
+  if (estado === 'Vencido') return '🔴 ' + (dias || 'Vencido');
+  return '🟡 ' + (dias || estado);
+}
+async function cargarCompromisos(){
+  const cont = document.getElementById('cp-lista');
+  try {
+    const tipo = document.getElementById('cp-filtro-tipo').value;
+    const data = await api('compromisos', { estado: CP_ESTADO_FILTRO, tipo });
+    if (!data.ok) throw new Error(data.error);
+    const items = data.compromisos || [];
+    CP_ITEMS_CACHE = {}; items.forEach(c=>CP_ITEMS_CACHE[c.id]=c);
+    let vencidos=0, proximos=0, ok=0, pendienteTotal=0;
+    const hoy = new Date(); const en7 = new Date(hoy.getTime()+7*86400000);
+    items.forEach(c=>{
+      pendienteTotal += c.saldoPendiente;
+      if (c.estado==='Pagado') ok++;
+      else if (c.estado==='Vencido') vencidos++;
+      else if (c.vencimiento && new Date(c.vencimiento) <= en7) proximos++;
+    });
+    document.getElementById('cp-count-vencidos').textContent = vencidos;
+    document.getElementById('cp-count-proximos').textContent = proximos;
+    document.getElementById('cp-count-ok').textContent = ok;
+    document.getElementById('cp-total-pendiente').textContent = fmt(pendienteTotal);
+    cont.innerHTML = items.length ? items.map(c => `
+      <div class="venta-row">
+        <div><div class="who">${semaforoTexto_(c.estado,c.diasParaVencer)} · ${esc(c.tipo)} — ${esc(c.beneficiario)}</div>
+        <div class="when">${esc(c.categoria||'')} · Vence: ${fechaCorta_(c.vencimiento)} · Pagado ${fmt(c.montoPagado)} de ${fmt(c.montoTotal)}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <div class="amt">${fmt(c.saldoPendiente)}</div>
+          ${c.estado!=='Pagado' ? `<button class="btn-mini" onclick="abrirModalPagoCompromisoPorId('${esc(c.id)}')">Registrar pago</button>` : ''}
+        </div>
+      </div>`).join('') : '<div class="empty-note">No hay compromisos con estos filtros.</div>';
+  } catch(err){ cont.innerHTML = `<div class="empty-note">${esc(err.message)}</div>`; }
+}
+document.querySelectorAll('#cp-tabs .tab-mini').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#cp-tabs .tab-mini').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); CP_ESTADO_FILTRO = b.dataset.estado; cargarCompromisos();
+  });
+});
+document.getElementById('cp-filtro-tipo').addEventListener('change', cargarCompromisos);
+document.getElementById('cp-guardar').addEventListener('click', async () => {
+  const btn = document.getElementById('cp-guardar'); const msg = document.getElementById('cp-msg');
+  msg.textContent=''; msg.className='sale-msg';
+  const body = { accion:'compromiso', tipo: document.getElementById('cp-tipo').value,
+    beneficiario: document.getElementById('cp-beneficiario').value.trim(),
+    categoria: document.getElementById('cp-categoria').value.trim(),
+    montoTotal: document.getElementById('cp-monto').value,
+    vencimiento: document.getElementById('cp-vencimiento').value,
+    observacion: document.getElementById('cp-observacion').value.trim() };
+  if (!body.montoTotal || !body.vencimiento) { msg.textContent='Indica el monto y la fecha de vencimiento'; msg.className='sale-msg err'; return; }
+  btn.disabled = true;
+  try {
+    const d = await api(null,{},'POST',body);
+    if(!d.ok) throw new Error(d.error);
+    msg.textContent = '✓ Compromiso registrado (' + d.id + ')'; msg.className='sale-msg ok';
+    ['cp-beneficiario','cp-categoria','cp-monto','cp-vencimiento','cp-observacion'].forEach(id=>document.getElementById(id).value='');
+    await cargarCompromisos();
+  } catch(err){ msg.textContent = err.message; msg.className='sale-msg err'; }
+  finally { btn.disabled = false; }
+});
+
+// ================= V18: SOCIOS Y FINANCIAMIENTO =================
+async function cargarSocios(){
+  const contS = document.getElementById('sc-por-socio'); const contH = document.getElementById('sc-historial');
+  try {
+    const data = await api('socios');
+    if (!data.ok) throw new Error(data.error);
+    document.getElementById('sc-pendiente-negocio').textContent = fmt(data.datos.pendienteNegocio);
+    const socios = data.datos.socios || [];
+    contS.innerHTML = socios.length ? socios.map(s => `
+      <div class="venta-row"><div><div class="who">${esc(s.socio)}</div>
+      <div class="when">Financiado: ${fmt(s.totalFinanciado)} · Recuperado: ${fmt(s.totalRecuperado)}${s.retiros?' · Retiros: '+fmt(s.retiros):''}</div></div>
+      <div class="amt">${fmt(s.pendiente)}</div></div>`).join('') : '<div class="empty-note">Sin socios registrados.</div>';
+    const hist = data.datos.historial || [];
+    contH.innerHTML = hist.length ? hist.slice(0,60).map(h => `
+      <div class="venta-row"><div><div class="who">${esc(h.socio)} — ${esc(h.tipo)}</div>
+      <div class="when">${h.ingresoACaja==='No' ? 'No pasó por Caja' : 'Vía Caja'}${h.observacion?' · '+esc(h.observacion):''} · ${fechaCorta_(h.fecha)}</div></div>
+      <div class="amt">${fmt(h.monto)}</div></div>`).join('') : '<div class="empty-note">Sin movimientos.</div>';
+  } catch(err){ contS.innerHTML = `<div class="empty-note">${esc(err.message)}</div>`; contH.innerHTML=''; }
+}
+document.getElementById('sc-tipo').addEventListener('change', () => {
+  const t = document.getElementById('sc-tipo').value;
+  document.getElementById('sc-ingreso-row').style.display = (t==='Aporte'||t==='Préstamo') ? 'flex' : 'none';
+});
+document.getElementById('sc-guardar').addEventListener('click', async () => {
+  const btn = document.getElementById('sc-guardar'); const msg = document.getElementById('sc-msg');
+  msg.textContent=''; msg.className='sale-msg';
+  const body = { accion:'movimientoSocio', socio: document.getElementById('sc-socio').value.trim(),
+    tipo: document.getElementById('sc-tipo').value, monto: document.getElementById('sc-monto').value,
+    ingresoACaja: document.getElementById('sc-ingreso').checked ? 'Sí' : 'No',
+    observacion: document.getElementById('sc-observacion').value.trim() };
+  if (!body.socio || !body.monto) { msg.textContent='Indica el socio y el monto'; msg.className='sale-msg err'; return; }
+  btn.disabled = true;
+  try {
+    const d = await api(null,{},'POST',body);
+    if(!d.ok) throw new Error(d.error);
+    msg.textContent = '✓ Movimiento registrado'; msg.className='sale-msg ok';
+    ['sc-socio','sc-monto','sc-observacion'].forEach(id=>document.getElementById(id).value='');
+    await cargarSocios(); await cargarCajaReal();
+  } catch(err){ msg.textContent = err.message; msg.className='sale-msg err'; }
+  finally { btn.disabled = false; }
+});
 
 async function cargarCaja(){
   const cont = document.getElementById('cj-lista');
