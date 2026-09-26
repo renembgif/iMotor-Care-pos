@@ -1244,7 +1244,10 @@ function abrirModalCompra(c) {
     campoNumero('em-tc', 'Tipo de cambio comercial (si es Dólares)', c.tipoCambio || 1) +
     campoNumero('em-tcsunat', 'TC SUNAT (si es Dólares)', c.tcSunat || '') +
     campoNumero('em-monto', 'Monto original', c.montoOriginal) +
-    campoSelect('em-tipomov', 'Tipo de movimiento', ['Compra', 'Bonificación', 'Gasto', 'Anulado'], c.tipoMovimiento);
+    campoSelect('em-tipomov', 'Tipo de movimiento', ['Compra', 'Bonificación', 'Gasto', 'Anulado'], c.tipoMovimiento) +
+    campoSelect('em-formapago', 'Forma de pago', ['Efectivo', 'Yape', 'Transferencia', 'Crédito Proveedor', 'Socio'], c.formaPago || 'Efectivo') +
+    campoTexto('em-socio', '¿Qué socio pagó? (solo si Forma de pago = Socio)', c.socio || '') +
+    (c.idCompromiso ? `<div class="empty-note" style="font-size:11.5px;">Ya vinculada al compromiso ${esc(c.idCompromiso)} (ver "Próximos Pagos" / "Socios y financiamiento"). Si cambias la Forma de pago o el socio aquí, se actualiza ese mismo compromiso — no se crea uno nuevo.</div>` : '');
   editModalOverlay.classList.add('show');
 }
 // Editar una conversión: se corrige LA MISMA fila (no se crea otra), así el Kardex recalcula el stock sin movimientos duplicados.
@@ -1320,7 +1323,10 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
         tipoCambio: document.getElementById('em-tc').value,
         tcSunat: document.getElementById('em-tcsunat').value,
         montoOriginal: document.getElementById('em-monto').value,
-        tipoMovimiento: document.getElementById('em-tipomov').value };
+        tipoMovimiento: document.getElementById('em-tipomov').value,
+        formaPago: document.getElementById('em-formapago').value,
+        socio: document.getElementById('em-socio').value.trim() };
+      if (body.formaPago === 'Socio' && !body.socio) { editModalMsg.textContent = 'Indica qué socio pagó esta compra/gasto'; editModalMsg.className = 'sale-msg err'; btn.disabled = false; btn.textContent = textoOriginal; return; }
     } else if (editModalContext.tipo === 'conversion') {
       body = { ...body, accion: 'editarConversion',
         fecha: document.getElementById('em-fecha').value,
@@ -2520,7 +2526,7 @@ async function cargarHistorialCompras(){
     <div class="list-row">
       <div class="lr-main">
         <div class="lr-title">${esc(c.producto||c.descripcion)} ${c.tipoMovimiento==='Anulado'?'<span class="badge-anulado">ANULADO</span>':''}</div>
-        <div class="lr-sub">${new Date(c.fecha).toLocaleDateString('es-PE')} · ${esc(c.proveedor||'')}${c.comprobante?' · '+esc(c.comprobante):''}</div>
+        <div class="lr-sub">${new Date(c.fecha).toLocaleDateString('es-PE')} · ${esc(c.proveedor||'')}${c.comprobante?' · '+esc(c.comprobante):''}${(c.formaPago==='Socio'||c.formaPago==='Crédito Proveedor')?' · 🤝 '+esc(c.formaPago)+(c.socio?' ('+esc(c.socio)+')':''):''}</div>
       </div>
       <div class="lr-total">${fmt(c.montoTotal)}</div>
       <div class="lr-actions">
