@@ -69,7 +69,19 @@ html.login-abierto, html.login-abierto body{ background:var(--graphite); }
   padding:24px;
   padding:calc(24px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));
 }
-.login-wrap{ max-height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.login-wrap{ max-height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; -ms-overflow-style:none; }
+.login-wrap::-webkit-scrollbar{ display:none; width:0; height:0; }   /* sin barra de desplazamiento visible; en pantallas muy bajas el contenido sigue pudiendo desplazarse con el dedo/rueda */
+/* Pantallas de poca altura (celular horizontal, ventanas bajas): se compacta el espaciado para que todo quepa sin desplazar. */
+@media (max-height:680px){
+  .login-brand-logo{ max-width:250px; margin-bottom:12px; }
+  .login-card{ padding:22px 24px 20px; }
+  .login-card p.sub{ margin-bottom:14px; }
+  .login-hint{ margin-top:10px; }
+}
+@media (max-height:520px){
+  .login-brand-logo{ max-width:170px; margin-bottom:8px; }
+  .login-card{ padding:16px 22px 14px; }
+}
 #login-screen::before, #login-screen::after{
   content:''; position:absolute; width:140%; height:140%; pointer-events:none;
   background:linear-gradient(135deg, transparent 46%, rgba(0,217,163,.16) 49.5%, rgba(0,217,163,.35) 50%, rgba(0,217,163,.16) 50.5%, transparent 54%);
