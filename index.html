@@ -790,7 +790,7 @@ html.login-abierto, html.login-abierto body{ background:var(--graphite); }
           <div class="cliente-row">
             <input type="date" id="cg-fecha" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
             <select id="cg-tipodoc" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
-              <option value="Factura">Factura</option><option value="Nota de Crédito">Nota de Crédito</option>
+              <option value="Factura">Factura</option><option value="Nota de Crédito">Nota de Crédito</option><option value="Sin documento">Sin documento</option>
             </select>
           </div>
           <div class="cliente-row" id="cg-docrelacionado-row" style="display:none;"><input type="text" id="cg-docrelacionado" placeholder="Documento relacionado (factura que corrige)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></div>
@@ -1256,7 +1256,7 @@ function abrirModalCompra(c) {
     campoTexto('em-descripcion', 'Descripción', c.descripcion) +
     (c.codigo ? '' : '') +
     campoTexto('em-proveedor', 'Proveedor', c.proveedor) +
-    campoSelect('em-tipodoc', 'Tipo de Documento', ['Factura', 'Nota de Crédito'], c.tipoDocumento || 'Factura') +
+    campoSelect('em-tipodoc', 'Tipo de Documento', ['Factura', 'Nota de Crédito', 'Sin documento'], c.tipoDocumento || 'Factura') +
     campoTexto('em-docrelacionado', 'Documento relacionado (solo Nota de Crédito)', c.documentoRelacionado) +
     campoTexto('em-comprobante', 'N° de comprobante', c.comprobante) +
     campoSelect('em-moneda', 'Moneda', ['Soles', 'Dolares'], esDol(c.moneda) ? 'Dolares' : 'Soles') +
@@ -2511,7 +2511,7 @@ const normTxt = t => String(t||'').toLowerCase().normalize('NFD').replace(/[\u03
     const p = items[i]; if(!p) return;
     inp.value = p.nombre; lista.classList.remove('show');
     const mon = document.getElementById('cg-moneda'); mon.value = esDol(p.moneda)?'Dolares':'Soles'; mon.dispatchEvent(new Event('change'));
-    const td = document.getElementById('cg-tipodoc'); td.value = (p.tipoDocumento==='Nota de Crédito')?'Nota de Crédito':'Factura'; td.dispatchEvent(new Event('change'));
+    const td = document.getElementById('cg-tipodoc'); td.value = (p.tipoDocumento==='Nota de Crédito' || p.tipoDocumento==='Sin documento')?p.tipoDocumento:'Factura'; td.dispatchEvent(new Event('change'));
     document.getElementById('cg-comprobante').focus();
   }
   inp.addEventListener('input', pintar);
