@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="login-abierto">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -57,12 +57,19 @@ button{ cursor:pointer; }
 ::selection{ background:var(--oil); color:#fff; }
 
 /* ---------- Login (verde jade) ---------- */
+/* V18.3: la franja blanca inferior en el celular era el fondo claro del <body> asomando bajo la pantalla de acceso
+   (barra de Safari / zona del indicador de inicio). Ahora la pantalla de acceso ocupa TODO el alto real
+   (position:fixed + inset:0, incluida la zona segura) y, mientras está abierta, html y body también son oscuros. */
+html.login-abierto, html.login-abierto body{ background:var(--graphite); }
 #login-screen{
-  min-height:100vh; min-height:100dvh; display:flex; align-items:center; justify-content:center;
-  position:relative; overflow:hidden;
+  position:fixed; top:0; right:0; bottom:0; left:0; z-index:50;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
   background:var(--graphite);
   padding:24px;
+  padding:calc(24px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));
 }
+.login-wrap{ max-height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 #login-screen::before, #login-screen::after{
   content:''; position:absolute; width:140%; height:140%; pointer-events:none;
   background:linear-gradient(135deg, transparent 46%, rgba(0,217,163,.16) 49.5%, rgba(0,217,163,.35) 50%, rgba(0,217,163,.16) 50.5%, transparent 54%);
@@ -793,7 +800,7 @@ button{ cursor:pointer; }
             </select>
           </div>
           <div class="cliente-row" id="cg-socio-row" style="display:none;"><input type="text" id="cg-socio" placeholder="¿Qué socio pagó?" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></div>
-          <div class="cliente-row" id="cg-vencimiento-row" style="display:none;"><input type="date" id="cg-vencimiento" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"><span class="empty-note" style="flex:1;font-size:11px;align-self:center;">Fecha de vencimiento (opcional; si la dejas vacía se usa la fecha de la compra)</span></div>
+          <div class="cliente-row" id="cg-vencimiento-row" style="display:none;flex-direction:column;align-items:stretch;gap:4px;"><span class="empty-note" style="font-size:11px;">Plazo de pago (se cuenta desde la fecha de la compra)</span><div id="cg-plazo-box"></div></div>
           <label class="chk-mantener"><input type="checkbox" id="cg-mantener" checked> Mantener fecha, proveedor, comprobante y moneda para la siguiente compra</label>
           <button class="btn-primary" id="cg-guardar" style="width:auto;padding:10px 20px;">Registrar</button>
           <div class="sale-msg" id="cg-msg"></div>
@@ -919,7 +926,7 @@ button{ cursor:pointer; }
             <input type="number" step="0.01" id="cp-monto" placeholder="Monto total (S/)" style="width:150px;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
           </div>
           <div class="cliente-row">
-            <input type="date" id="cp-vencimiento" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+            <input type="date" id="cp-vencimiento" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"><label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim);white-space:nowrap;"><input type="checkbox" id="cp-sinplazo"> Sin fecha</label>
             <input type="text" id="cp-observacion" placeholder="Observación (opcional)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
           </div>
           <button class="btn-primary" id="cp-guardar" style="width:auto;padding:10px 20px;">Registrar compromiso</button>
@@ -1245,10 +1252,17 @@ function abrirModalCompra(c) {
     campoNumero('em-tcsunat', 'TC SUNAT (si es Dólares)', c.tcSunat || '') +
     campoNumero('em-monto', 'Monto original', c.montoOriginal) +
     campoSelect('em-tipomov', 'Tipo de movimiento', ['Compra', 'Bonificación', 'Gasto', 'Anulado'], c.tipoMovimiento) +
+    // V18.3: forma de pago / socio / plazo editables. Cambiar el socio o la forma de pago actualiza Compromiso y Socios (el backend lo sincroniza).
     campoSelect('em-formapago', 'Forma de pago', ['Efectivo', 'Yape', 'Transferencia', 'Crédito Proveedor', 'Socio'], c.formaPago || 'Efectivo') +
-    campoTexto('em-socio', '¿Qué socio pagó? (solo si Forma de pago = Socio)', c.socio || '') +
-    (c.idCompromiso ? `<div class="empty-note" style="font-size:11.5px;">Ya vinculada al compromiso ${esc(c.idCompromiso)} (ver "Próximos Pagos" / "Socios y financiamiento"). Si cambias la Forma de pago o el socio aquí, se actualiza ese mismo compromiso — no se crea uno nuevo.</div>` : '');
+    `<div class="field" id="em-socio-wrap"><label>Socio que pagó</label><input type="text" id="em-socio" value="${esc(c.socio || '')}" placeholder="¿Qué socio pagó?"></div>` +
+    `<div class="field" id="em-plazo-wrap"><label>Plazo de pago</label>${plazoHtml_('em', true)}</div>`;
   editModalOverlay.classList.add('show');
+  const fpSel = document.getElementById('em-formapago');
+  const updPago = () => {
+    document.getElementById('em-socio-wrap').style.display = fpSel.value === 'Socio' ? 'block' : 'none';
+    document.getElementById('em-plazo-wrap').style.display = (fpSel.value === 'Socio' || fpSel.value === 'Crédito Proveedor') ? 'block' : 'none';
+  };
+  fpSel.addEventListener('change', updPago); updPago(); bindPlazo_('em');
 }
 // Editar una conversión: se corrige LA MISMA fila (no se crea otra), así el Kardex recalcula el stock sin movimientos duplicados.
 function abrirModalConversion(c) {
@@ -1326,7 +1340,12 @@ document.getElementById('edit-modal-save').addEventListener('click', async () =>
         tipoMovimiento: document.getElementById('em-tipomov').value,
         formaPago: document.getElementById('em-formapago').value,
         socio: document.getElementById('em-socio').value.trim() };
-      if (body.formaPago === 'Socio' && !body.socio) { editModalMsg.textContent = 'Indica qué socio pagó esta compra/gasto'; editModalMsg.className = 'sale-msg err'; btn.disabled = false; btn.textContent = textoOriginal; return; }
+      if (body.formaPago === 'Socio' && !body.socio) throw new Error('Indica qué socio pagó esta compra/gasto.');
+      if (body.formaPago === 'Socio' || body.formaPago === 'Crédito Proveedor') {
+        const pz = leerPlazo_('em');
+        if (!pz) throw new Error('Completa el plazo de pago (número de días o fecha).');
+        Object.assign(body, pz);   // {} si se deja "Mantener vencimiento actual": no se toca el vencimiento existente
+      }
     } else if (editModalContext.tipo === 'conversion') {
       body = { ...body, accion: 'editarConversion',
         fecha: document.getElementById('em-fecha').value,
@@ -1419,21 +1438,108 @@ let CLAVE = '';
 // Si Apps Script falla con una excepción no controlada, Google responde una página HTML sin cabeceras CORS y el
 // navegador solo dice "Failed to fetch". El backend v17 ya devuelve siempre JSON con el motivo real; aquí se
 // traduce cualquier fallo de red/HTML a un mensaje entendible (sin ocultar el detalle técnico).
-async function api(accion, params={}, metodo='GET', body=null) {
-  let res;
-  try {
-    if (metodo === 'GET') {
-      const qs = new URLSearchParams({ accion, ...params, _t: Date.now() }).toString();   // _t evita respuestas en caché
-      res = await fetch(`${API_URL}?${qs}`, { cache: 'no-store' });
-    } else {
-      res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion, clave: CLAVE, ...body }) });
-    }
-  } catch (e) {
-    throw new Error('No se pudo conectar con el servidor de Google (' + (navigator.onLine ? 'Apps Script no respondió o falló' : 'sin internet') + '). Detalle: ' + e.message);
-  }
+// V18.3 — "Load failed" sin duplicados. Cada escritura lleva un opId único (el mismo en los reintentos). Si la
+// conexión se corta ANTES de recibir la respuesta, Apps Script pudo haber escrito igual: en vez de mostrar el error
+// (y que se repita la operación a mano), se le pregunta al backend por ese opId ('estadoOperacion'):
+//   · ya procesada  → se devuelve el resultado real guardado (como si la respuesta hubiera llegado);
+//   · no procesada  → se reintenta UNA vez con el mismo opId (el backend ignora el duplicado si la primera aún estaba en cola);
+//   · no se pudo saber → error claro pidiendo revisar antes de repetir (no se oculta nada).
+function nuevoOpId_() {
+  return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2, 12));
+}
+const esperar_ = (ms) => new Promise(r => setTimeout(r, ms));
+function errorConexion_(e) {
+  return new Error('No se pudo conectar con el servidor de Google (' + (navigator.onLine ? 'Apps Script no respondió o falló' : 'sin internet') + '). Detalle: ' + e.message);
+}
+async function postCrudo_(payload) {
+  const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
   const txt = await res.text();
   try { return JSON.parse(txt); }
-  catch (e) { throw new Error('El servidor respondió algo que no es JSON (probable error de Apps Script; revisa "Ejecuciones" en script.google.com).'); }
+  catch (e) { const er = new Error('El servidor respondió algo que no es JSON (probable error de Apps Script; revisa "Ejecuciones" en script.google.com).'); er.noJson = true; throw er; }
+}
+async function consultarEstadoOp_(opId) {
+  for (let i = 0; i < 3; i++) {
+    try {
+      const r = await postCrudo_({ accion: 'estadoOperacion', clave: CLAVE, opId });
+      if (r && r.ok) return r;
+    } catch (e) { /* se reintenta */ }
+    await esperar_(1500 * (i + 1));
+  }
+  return null;
+}
+async function api(accion, params={}, metodo='GET', body=null) {
+  if (metodo === 'GET') {
+    const qs = new URLSearchParams({ accion, ...params, _t: Date.now() }).toString();   // _t evita respuestas en caché
+    for (let intento = 0; ; intento++) {
+      try {
+        const res = await fetch(`${API_URL}?${qs}`, { cache: 'no-store' });
+        const txt = await res.text();
+        try { return JSON.parse(txt); }
+        catch (e) { throw new Error('El servidor respondió algo que no es JSON (probable error de Apps Script; revisa "Ejecuciones" en script.google.com).'); }
+      } catch (e) {
+        if (intento === 0 && !/no es JSON/.test(e.message)) { await esperar_(800); continue; }   // lectura: reintento simple
+        if (/no es JSON/.test(e.message)) throw e;
+        throw errorConexion_(e);
+      }
+    }
+  }
+  const payload = { accion, clave: CLAVE, ...body };
+  const acc = payload.accion;
+  if (acc && acc !== 'login' && acc !== 'estadoOperacion' && !payload.opId) payload.opId = nuevoOpId_();
+  const opId = payload.opId;
+  let ultimo = null;
+  for (let intento = 0; intento < 2; intento++) {
+    try {
+      return await postCrudo_(payload);
+    } catch (e) {
+      ultimo = e;
+      if (!opId) break;                                   // login u otra acción sin opId: se informa tal cual
+      await esperar_(1200);
+      const est = await consultarEstadoOp_(opId);
+      if (est && est.procesada) return Object.assign({}, est.resultado, { recuperado: true });   // sí se registró: se informa el resultado real
+      if (!est) {
+        const er = new Error('No se pudo confirmar si la operación se registró (falló la conexión y tampoco se pudo consultar). Revisa el historial en Google Sheets ANTES de repetirla, para no duplicar.');
+        throw er;
+      }
+      // no procesada → segundo intento con el MISMO opId
+    }
+  }
+  if (ultimo && ultimo.noJson) throw ultimo;
+  throw errorConexion_(ultimo || new Error('sin detalle'));
+}
+
+// ===== V18.3: plazo de pago editable (Crédito Proveedor / Socio) =====
+// Devuelve el HTML del selector. conMantener=true (edición): "Mantener vencimiento actual" es la opción por defecto y NO
+// envía nada, así los compromisos existentes conservan su fecha. En un registro nuevo el valor por defecto es 30 días.
+function plazoHtml_(id, conMantener) {
+  const est = 'padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--text);font-size:14px;';
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;width:100%;">` +
+    `<select id="${id}-plazo" style="flex:1;min-width:150px;${est}">` +
+      (conMantener ? '<option value="mantener" selected>Mantener vencimiento actual</option>' : '') +
+      `<option value="7">7 días</option><option value="15">15 días</option><option value="30" ${conMantener ? '' : 'selected'}>30 días</option>` +
+      '<option value="45">45 días</option><option value="60">60 días</option><option value="otro">Otro plazo (días)…</option>' +
+      '<option value="fecha">Fecha exacta…</option><option value="sin">Sin plazo / sin fecha</option>' +
+    '</select>' +
+    `<input type="number" min="0" step="1" id="${id}-plazodias" placeholder="Días" style="display:none;width:100px;${est}">` +
+    `<input type="date" id="${id}-plazofecha" style="display:none;${est}">` +
+  '</div>';
+}
+function bindPlazo_(id) {
+  const sel = document.getElementById(id + '-plazo'); if (!sel) return;
+  const upd = () => {
+    document.getElementById(id + '-plazodias').style.display = sel.value === 'otro' ? 'block' : 'none';
+    document.getElementById(id + '-plazofecha').style.display = sel.value === 'fecha' ? 'block' : 'none';
+  };
+  sel.addEventListener('change', upd); upd();
+}
+// Lee el plazo elegido → campos para el body. {} = no tocar (mantener). null = dato inválido (falta el número o la fecha).
+function leerPlazo_(id) {
+  const v = document.getElementById(id + '-plazo').value;
+  if (v === 'mantener') return {};
+  if (v === 'sin') return { sinPlazo: true };
+  if (v === 'fecha') { const f = document.getElementById(id + '-plazofecha').value; return f ? { vencimiento: f } : null; }
+  if (v === 'otro') { const t = document.getElementById(id + '-plazodias').value; const n = Number(t); return (t !== '' && isFinite(n) && n >= 0) ? { plazoDias: Math.round(n) } : null; }
+  return { plazoDias: Number(v) };
 }
 
 async function cargarProductos() {
@@ -2407,6 +2513,7 @@ const normTxt = t => String(t||'').toLowerCase().normalize('NFD').replace(/[\u03
   });
 })();
 
+document.getElementById('cg-plazo-box').innerHTML = plazoHtml_('cg', false); bindPlazo_('cg');
 document.getElementById('cg-formapago').addEventListener('change', () => {
   const v = document.getElementById('cg-formapago').value;
   document.getElementById('cg-socio-row').style.display = (v === 'Socio') ? 'flex' : 'none';
@@ -2429,8 +2536,13 @@ document.getElementById('cg-guardar').addEventListener('click', async () => {
     tcSunat: document.getElementById('cg-tcsunat').value,
     formaPago: document.getElementById('cg-formapago').value,
     socio: document.getElementById('cg-socio').value.trim(),
-    vencimiento: document.getElementById('cg-vencimiento').value };
+    };
   const formaPagoSel = body.formaPago;
+  if (formaPagoSel === 'Crédito Proveedor' || formaPagoSel === 'Socio') {
+    const pz = leerPlazo_('cg');
+    if (!pz) { msg.textContent='Completa el plazo de pago (número de días o fecha)'; msg.className='sale-msg err'; return; }
+    Object.assign(body, pz);
+  }
   if (formaPagoSel === 'Socio' && !body.socio) { msg.textContent='Indica qué socio pagó esta compra/gasto'; msg.className='sale-msg err'; return; }
   btn.disabled = true;
   try {
@@ -2526,7 +2638,7 @@ async function cargarHistorialCompras(){
     <div class="list-row">
       <div class="lr-main">
         <div class="lr-title">${esc(c.producto||c.descripcion)} ${c.tipoMovimiento==='Anulado'?'<span class="badge-anulado">ANULADO</span>':''}</div>
-        <div class="lr-sub">${new Date(c.fecha).toLocaleDateString('es-PE')} · ${esc(c.proveedor||'')}${c.comprobante?' · '+esc(c.comprobante):''}${(c.formaPago==='Socio'||c.formaPago==='Crédito Proveedor')?' · 🤝 '+esc(c.formaPago)+(c.socio?' ('+esc(c.socio)+')':''):''}</div>
+        <div class="lr-sub">${new Date(c.fecha).toLocaleDateString('es-PE')} · ${esc(c.proveedor||'')}${c.comprobante?' · '+esc(c.comprobante):''}</div>
       </div>
       <div class="lr-total">${fmt(c.montoTotal)}</div>
       <div class="lr-actions">
@@ -2691,13 +2803,14 @@ document.getElementById('cp-guardar').addEventListener('click', async () => {
     montoTotal: document.getElementById('cp-monto').value,
     vencimiento: document.getElementById('cp-vencimiento').value,
     observacion: document.getElementById('cp-observacion').value.trim() };
-  if (!body.montoTotal || !body.vencimiento) { msg.textContent='Indica el monto y la fecha de vencimiento'; msg.className='sale-msg err'; return; }
+  if (document.getElementById('cp-sinplazo').checked) { body.sinPlazo = true; body.vencimiento = ''; }
+  if (!body.montoTotal || (!body.vencimiento && !body.sinPlazo)) { msg.textContent='Indica el monto y la fecha de vencimiento (o marca "Sin fecha")'; msg.className='sale-msg err'; return; }
   btn.disabled = true;
   try {
     const d = await api(null,{},'POST',body);
     if(!d.ok) throw new Error(d.error);
     msg.textContent = '✓ Compromiso registrado (' + d.id + ')'; msg.className='sale-msg ok';
-    ['cp-beneficiario','cp-categoria','cp-monto','cp-vencimiento','cp-observacion'].forEach(id=>document.getElementById(id).value='');
+    ['cp-beneficiario','cp-categoria','cp-monto','cp-vencimiento','cp-observacion'].forEach(id=>document.getElementById(id).value=''); document.getElementById('cp-sinplazo').checked=false;
     await cargarCompromisos();
   } catch(err){ msg.textContent = err.message; msg.className='sale-msg err'; }
   finally { btn.disabled = false; }
@@ -3032,6 +3145,7 @@ document.getElementById('cl-buscar-placa').addEventListener('input', (e) => {
 
 // ---------------- LOGIN ----------------
 function mostrarApp() {
+  document.documentElement.classList.remove('login-abierto');
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').classList.add('active');
   document.querySelector('.bottom-nav').classList.add('show');
@@ -3045,7 +3159,7 @@ async function intentarLogin(clave) {
   CLAVE = clave;
   try {
     const d = await api(null, {}, 'POST', { accion: 'login' });
-    if (!d.ok) { err.textContent = d.error || 'Clave incorrecta'; CLAVE = ''; return; }
+    if (!d.ok) { err.textContent = d.error || 'Clave incorrecta'; CLAVE = ''; sessionStorage.removeItem('imc_clave'); return; }
     sessionStorage.setItem('imc_clave', clave);
     mostrarApp();
   } catch (e) {
