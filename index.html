@@ -69,19 +69,7 @@ html.login-abierto, html.login-abierto body{ background:var(--graphite); }
   padding:24px;
   padding:calc(24px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));
 }
-.login-wrap{ max-height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; -ms-overflow-style:none; }
-.login-wrap::-webkit-scrollbar{ display:none; width:0; height:0; }   /* sin barra de desplazamiento visible; en pantallas muy bajas el contenido sigue pudiendo desplazarse con el dedo/rueda */
-/* Pantallas de poca altura (celular horizontal, ventanas bajas): se compacta el espaciado para que todo quepa sin desplazar. */
-@media (max-height:680px){
-  .login-brand-logo{ max-width:250px; margin-bottom:12px; }
-  .login-card{ padding:22px 24px 20px; }
-  .login-card p.sub{ margin-bottom:14px; }
-  .login-hint{ margin-top:10px; }
-}
-@media (max-height:520px){
-  .login-brand-logo{ max-width:170px; margin-bottom:8px; }
-  .login-card{ padding:16px 22px 14px; }
-}
+.login-wrap{ max-height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 #login-screen::before, #login-screen::after{
   content:''; position:absolute; width:140%; height:140%; pointer-events:none;
   background:linear-gradient(135deg, transparent 46%, rgba(0,217,163,.16) 49.5%, rgba(0,217,163,.35) 50%, rgba(0,217,163,.16) 50.5%, transparent 54%);
@@ -534,6 +522,151 @@ html.login-abierto, html.login-abierto body{ background:var(--graphite); }
 .conc-info div{ display:flex; justify-content:space-between; gap:10px; padding:2px 0; }
 .conc-info b{ font-family:var(--font-mono); text-align:right; }
 .conc-nota{ font-size:12px; color:var(--text-dim); margin:0 0 12px; }
+
+/* =========================================================
+   iMotor Care V2 — sistema visual global
+   Solo UI/UX + deduplicación de lecturas en vuelo.
+   No modifica hojas, columnas ni lógica financiera.
+   ========================================================= */
+:root{
+  --ink:#111827;
+  --ink-soft:#374151;
+  --paper:#f7f8fa;
+  --card:#ffffff;
+  --line:#e5e7eb;
+  --line-soft:#eef0f3;
+  --accent:#2563eb;
+  --accent-strong:#1d4ed8;
+  --accent-soft:#eff6ff;
+  --ok:#15803d;
+  --ok-soft:#f0fdf4;
+  --warn:#b45309;
+  --warn-soft:#fffbeb;
+  --danger:#dc2626;
+  --danger-soft:#fef2f2;
+  --text:#111827;
+  --text-dim:#6b7280;
+  --graphite:#111827;
+  --graphite-2:#182235;
+  --jade:#2563eb;
+  --jade-deep:#1d4ed8;
+  --jade-line:rgba(37,99,235,.24);
+  --oil:#2563eb;
+  --oil-deep:#1d4ed8;
+  --radius:12px;
+  --nav-w:236px;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.04);
+  --shadow:0 6px 24px rgba(15,23,42,.06);
+}
+html,body{background:var(--paper);color:var(--text);}
+body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+button,input,select,textarea{font-family:inherit;}
+button{transition:transform .12s ease,background-color .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease;}
+button:active{transform:translateY(1px);}
+
+/* App shell */
+.sidebar{
+  width:var(--nav-w);background:#fff;color:var(--text);border-right:1px solid var(--line);
+  box-shadow:4px 0 20px rgba(15,23,42,.025);padding:18px 0;
+}
+.brand{justify-content:flex-start;padding:0 20px 18px;border-bottom:1px solid var(--line);margin-bottom:12px;}
+.sidebar-logo{max-width:174px;}
+.nav-item{margin:2px 10px;padding:10px 12px;border-left:0;border-radius:9px;color:#64748b;font-size:13px;gap:11px;}
+.nav-item:hover{background:#f8fafc;color:var(--ink);}
+.nav-item.active{background:var(--accent-soft);border-left:0;color:var(--accent-strong);box-shadow:inset 3px 0 0 var(--accent);}
+.nav-item .ic{width:19px;}
+.sidebar-foot{margin:12px 10px 0;padding:14px 10px 0;border-top:1px solid var(--line);}
+.user-avatar{background:var(--accent);color:#fff;}
+.user-role{color:#94a3b8;}
+.logout-link{color:#64748b;}
+
+.main{padding:28px 32px 90px;background:var(--paper);}
+.topline{margin-bottom:20px;}
+.topline h2{font-size:23px;letter-spacing:-.025em;color:var(--ink);}
+.caja-pill{background:var(--ok-soft);color:var(--ok);border:1px solid #dcfce7;}
+.caja-pill.cerrada{background:var(--danger-soft);color:var(--danger);border-color:#fee2e2;}
+
+/* Cards / panels */
+.grid-cards{gap:14px;margin-bottom:20px;}
+.card{border:1px solid var(--line);border-radius:12px;padding:17px 18px;box-shadow:var(--shadow-sm);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;}
+.card:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:#dbe2ea;}
+.card .label{color:#64748b;font-size:10.5px;letter-spacing:.065em;}
+.card .value{font-size:27px;letter-spacing:-.035em;color:var(--ink);}
+.card.accent .value{color:var(--accent-strong);}
+.panel{border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-sm);margin-bottom:16px;}
+.panel-head{padding:15px 18px;border-bottom:1px solid var(--line-soft);font-size:13.5px;color:#1f2937;background:#fff;}
+.panel-body{background:#fff;}
+
+/* Views: cambio suave sin recargar toda la página */
+.view{display:none;}
+.view.active{display:block;animation:imcViewIn .18s ease-out both;}
+@keyframes imcViewIn{from{opacity:.35;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+/* Buttons */
+.btn-primary,#login-screen .btn-primary{background:var(--accent);color:#fff;border-radius:9px;box-shadow:0 1px 2px rgba(37,99,235,.18);}
+.btn-primary:hover,#login-screen .btn-primary:hover{background:var(--accent-strong);box-shadow:0 4px 12px rgba(37,99,235,.18);}
+.btn-sm{border-color:#dbe2ea;color:#334155;border-radius:8px;background:#fff;}
+.btn-sm:hover{background:#f8fafc;border-color:#cbd5e1;}
+.btn-sm-danger{border-color:#fecaca;color:var(--danger);border-radius:8px;background:#fff;}
+.btn-sm-danger:hover{background:var(--danger-soft);}
+.btn-mini{background:var(--accent);color:#fff;border-radius:7px;}
+.btn-mini:hover{background:var(--accent-strong);}
+
+/* Forms */
+.field label{color:#64748b;letter-spacing:.055em;}
+.field input,.field select,.filtro-rango input,.li-qty input.qty-edit{
+  border-color:#dbe2ea;border-radius:9px;background:#fff;color:var(--text);
+}
+.field input:focus,.field select:focus,.filtro-rango input:focus,.li-qty input.qty-edit:focus{
+  border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+
+/* Modals */
+.modal-overlay,.cot-modal-overlay{
+  background:rgba(15,23,42,.42);backdrop-filter:blur(3px);
+}
+.modal-overlay.show,.cot-modal-overlay.show{animation:imcOverlayIn .16s ease-out both;}
+.modal-box{
+  border:1px solid rgba(226,232,240,.95);border-radius:14px;box-shadow:0 24px 70px rgba(15,23,42,.18);
+  animation:imcModalIn .18s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes imcOverlayIn{from{opacity:0}to{opacity:1}}
+@keyframes imcModalIn{from{opacity:0;transform:translateY(7px) scale(.985)}to{opacity:1;transform:none}}
+.modal-x:hover{color:var(--accent);background:var(--accent-soft);border-radius:7px;}
+
+/* Badges / states */
+.badge-ok,.tag-ok{color:var(--ok);}
+.badge-info{background:var(--accent-soft);color:var(--accent-strong);}
+.badge-warn{background:var(--warn-soft);color:var(--warn);}
+
+/* Mobile */
+@media (max-width:820px){
+  .main{padding:18px 14px calc(82px + env(safe-area-inset-bottom));}
+  .topline h2{font-size:20px;}
+  .grid-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .card{padding:14px;}
+  .card .value{font-size:22px;}
+  .panel{border-radius:11px;margin-bottom:12px;}
+  .panel-head{padding:13px 14px;}
+  .bottom-nav{border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(15,23,42,.06);background:rgba(255,255,255,.96);backdrop-filter:blur(10px);}
+  .bottom-nav a.active{color:var(--accent);}
+}
+@media (max-width:420px){
+  .grid-cards{grid-template-columns:1fr 1fr;}
+  .card .label{font-size:9.5px;}
+  .card .value{font-size:20px;}
+}
+
+/* Loading states: skeletons suaves */
+.imc-skeleton{position:relative;overflow:hidden;background:#eef2f7!important;color:transparent!important;border-color:#eef2f7!important;}
+.imc-skeleton::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:imcShimmer 1.15s infinite;}
+@keyframes imcShimmer{100%{transform:translateX(100%)}}
+
+/* Accesibilidad / rendimiento */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important;}
+}
+
 </style>
 </head>
 <body>
@@ -790,7 +923,7 @@ html.login-abierto, html.login-abierto body{ background:var(--graphite); }
           <div class="cliente-row">
             <input type="date" id="cg-fecha" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
             <select id="cg-tipodoc" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
-              <option value="Factura">Factura</option><option value="Nota de Crédito">Nota de Crédito</option><option value="Sin documento">Sin documento</option>
+              <option value="Factura">Factura</option><option value="Nota de Crédito">Nota de Crédito</option>
             </select>
           </div>
           <div class="cliente-row" id="cg-docrelacionado-row" style="display:none;"><input type="text" id="cg-docrelacionado" placeholder="Documento relacionado (factura que corrige)" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;"></div>
@@ -1256,7 +1389,7 @@ function abrirModalCompra(c) {
     campoTexto('em-descripcion', 'Descripción', c.descripcion) +
     (c.codigo ? '' : '') +
     campoTexto('em-proveedor', 'Proveedor', c.proveedor) +
-    campoSelect('em-tipodoc', 'Tipo de Documento', ['Factura', 'Nota de Crédito', 'Sin documento'], c.tipoDocumento || 'Factura') +
+    campoSelect('em-tipodoc', 'Tipo de Documento', ['Factura', 'Nota de Crédito'], c.tipoDocumento || 'Factura') +
     campoTexto('em-docrelacionado', 'Documento relacionado (solo Nota de Crédito)', c.documentoRelacionado) +
     campoTexto('em-comprobante', 'N° de comprobante', c.comprobante) +
     campoSelect('em-moneda', 'Moneda', ['Soles', 'Dolares'], esDol(c.moneda) ? 'Dolares' : 'Soles') +
@@ -1479,21 +1612,32 @@ async function consultarEstadoOp_(opId) {
   }
   return null;
 }
+const IMC_GET_INFLIGHT = new Map();
 async function api(accion, params={}, metodo='GET', body=null) {
   if (metodo === 'GET') {
-    const qs = new URLSearchParams({ accion, ...params, _t: Date.now() }).toString();   // _t evita respuestas en caché
-    for (let intento = 0; ; intento++) {
-      try {
-        const res = await fetch(`${API_URL}?${qs}`, { cache: 'no-store' });
-        const txt = await res.text();
-        try { return JSON.parse(txt); }
-        catch (e) { throw new Error('El servidor respondió algo que no es JSON (probable error de Apps Script; revisa "Ejecuciones" en script.google.com).'); }
-      } catch (e) {
-        if (intento === 0 && !/no es JSON/.test(e.message)) { await esperar_(800); continue; }   // lectura: reintento simple
-        if (/no es JSON/.test(e.message)) throw e;
-        throw errorConexion_(e);
+    // Evita dos GET idénticos simultáneos. No cachea datos: solo comparte la misma promesa
+    // mientras la lectura ya está en curso. Google Sheets sigue siendo la fuente de verdad.
+    const key = accion + '?' + JSON.stringify(params || {});
+    const vigente = IMC_GET_INFLIGHT.get(key);
+    if (vigente) return vigente;
+    const promise = (async () => {
+      const qs = new URLSearchParams({ accion, ...params, _t: Date.now() }).toString();
+      for (let intento = 0; ; intento++) {
+        try {
+          const res = await fetch(`${API_URL}?${qs}`, { cache: 'no-store' });
+          const txt = await res.text();
+          try { return JSON.parse(txt); }
+          catch (e) { throw new Error('El servidor respondió algo que no es JSON (probable error de Apps Script; revisa "Ejecuciones" en script.google.com).'); }
+        } catch (e) {
+          if (intento === 0 && !/no es JSON/.test(e.message)) { await esperar_(800); continue; }
+          if (/no es JSON/.test(e.message)) throw e;
+          throw errorConexion_(e);
+        }
       }
-    }
+    })();
+    IMC_GET_INFLIGHT.set(key, promise);
+    try { return await promise; }
+    finally { if (IMC_GET_INFLIGHT.get(key) === promise) IMC_GET_INFLIGHT.delete(key); }
   }
   const payload = { accion, clave: CLAVE, ...body };
   const acc = payload.accion;
@@ -2511,7 +2655,7 @@ const normTxt = t => String(t||'').toLowerCase().normalize('NFD').replace(/[\u03
     const p = items[i]; if(!p) return;
     inp.value = p.nombre; lista.classList.remove('show');
     const mon = document.getElementById('cg-moneda'); mon.value = esDol(p.moneda)?'Dolares':'Soles'; mon.dispatchEvent(new Event('change'));
-    const td = document.getElementById('cg-tipodoc'); td.value = (p.tipoDocumento==='Nota de Crédito' || p.tipoDocumento==='Sin documento')?p.tipoDocumento:'Factura'; td.dispatchEvent(new Event('change'));
+    const td = document.getElementById('cg-tipodoc'); td.value = (p.tipoDocumento==='Nota de Crédito')?'Nota de Crédito':'Factura'; td.dispatchEvent(new Event('change'));
     document.getElementById('cg-comprobante').focus();
   }
   inp.addEventListener('input', pintar);
@@ -3198,6 +3342,15 @@ document.getElementById('login-pw-toggle').addEventListener('click', () => {
 });
 const claveGuardada = sessionStorage.getItem('imc_clave');
 if (claveGuardada) { intentarLogin(claveGuardada); }
+
+// V2: feedback visual global para botones, sin reemplazar handlers existentes.
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b || b.disabled) return;
+  b.classList.add('imc-press');
+  setTimeout(() => b.classList.remove('imc-press'), 140);
+}, { passive:true });
+
 </script>
 </body>
 </html>
