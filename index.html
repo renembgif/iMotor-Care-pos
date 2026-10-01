@@ -724,13 +724,83 @@ html.login-abierto,html.login-abierto body{background:var(--paper)}
 .x-cr:first-of-type{border-top:0}
 .stat-card .sc-icon{background:var(--blue-s)!important;color:var(--blue)!important}
 @media(max-width:820px){#x-net{left:12px;right:12px;top:calc(env(safe-area-inset-top) + 54px);transform:translateY(-10px);max-width:none}#x-net.on{transform:none}}
+
+/* ===================== V20 · PULIDO (observaciones 1–7) ===================== */
+:root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
+/* 1. Splash a pantalla completa */
+html.x-splash,html.x-splash body{overflow:hidden}
+#x-intro{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100vh;height:100dvh;background:var(--graphite);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);z-index:300;transition:opacity .6s,visibility .6s;overflow:hidden;cursor:pointer;border-radius:0}
+#x-intro::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 44%,rgba(0,210,230,.14),transparent 62%)}
+#x-intro.off{opacity:0;visibility:hidden}
+#x-intro img{position:relative;width:min(72vw,340px);height:auto;animation:xLg .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes xLg{from{opacity:0;transform:scale(.92)}}
+.x-lb{position:relative;width:min(40vw,160px);height:2px;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden}
+.x-lb i{display:block;height:100%;background:#2fd3e6;transform-origin:left;transform:scaleX(0);animation:xLb 2.4s .3s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes xLb{to{transform:scaleX(1)}}
+#x-intro small{position:relative;color:#9fb0b6;font-size:12px;letter-spacing:.12em;opacity:0;animation:xFi .6s .8s forwards}
+/* 2. Login: una sola composición */
+#login-screen{padding:max(20px,var(--sat)) 16px max(20px,var(--sab))}
+.login-wrap{max-width:440px;padding:12px 20px 44px}
+.login-unit{width:100%;border-radius:28px;overflow:hidden;background:var(--card);box-shadow:0 14px 28px rgba(20,22,26,.13),0 4px 10px rgba(20,22,26,.07);animation:lUp .7s cubic-bezier(.16,1,.3,1)}
+.login-head{position:relative;background:var(--graphite);padding:34px 24px 58px;display:flex;justify-content:center}
+.login-head::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,rgba(0,210,230,.16),transparent 65%)}
+.login-brand-logo{position:relative;background:transparent;border-radius:0;padding:0;box-shadow:none;margin:0;width:80%;max-width:300px;filter:none}
+.login-card,.login-card:hover{position:relative;margin-top:-30px;border:0;border-radius:28px 28px 0 0;box-shadow:none;transform:none!important;animation:none;background:var(--card)}
+/* 3. Safe area a nivel de layout */
+#x-ub{top:calc(var(--sat) + 12px)}
+#topbar{top:var(--sat)}
+.main{padding-top:calc(var(--sat) + 62px)}
+#x-band{display:none}
+@media(max-width:820px){
+ #x-ub{left:12px;right:12px;justify-content:flex-end;top:calc(var(--sat) + 10px)}
+ .main{padding-top:calc(var(--sat) + 62px)}
+ #x-band{display:block;position:fixed;top:0;left:0;right:0;height:calc(var(--sat) + 56px);background:linear-gradient(var(--paper) 80%,rgba(246,247,249,0));z-index:34;pointer-events:none}
+ #x-ts{bottom:calc(var(--sab) + 80px)}
+}
+/* 5. Inventario legible en móvil (solo los textos de la tabla) */
+@media(max-width:820px){
+ .inv-table{table-layout:fixed;width:100%}
+ .inv-table th,.inv-table td{padding:9px 4px;word-break:break-word;overflow-wrap:anywhere}
+ .inv-table td{font-size:12px;line-height:1.3}
+ .inv-table th{letter-spacing:0;font-size:10.5px}
+ .inv-table th:nth-child(1){width:17%}.inv-table th:nth-child(2){width:31%}.inv-table th:nth-child(3){width:13%}.inv-table th:nth-child(4){width:20%}.inv-table th:nth-child(5){width:19%}
+ .inv-table th:nth-child(1),.inv-table td:nth-child(1){padding-left:10px}
+ .inv-table th:nth-child(3),.inv-table td:nth-child(3),.inv-table th:nth-child(4),.inv-table td:nth-child(4){text-align:center}
+ .inv-table td .badge-low{display:block;margin:2px auto 0;width:max-content;font-size:9.5px;padding:1px 5px}
+ .inv-table .inv-acciones{flex-direction:column;gap:4px}
+ .inv-table .inv-acciones button{padding:4px 6px;font-size:11px;width:100%}
+}
+/* 4/6. Estados de proceso: hint y botón de actualizar */
+.x-spin{position:relative;color:transparent!important;pointer-events:none}
+.x-spin::after{content:"";position:absolute;inset:0;margin:auto;width:14px;height:14px;border:2px solid var(--blue);border-right-color:transparent;border-radius:50%;animation:xRot .7s linear infinite}
+/* 7. Estado del sistema (conexión) */
+#x-sys{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:rgba(20,23,26,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;z-index:290}
+#x-sys.on{opacity:1;visibility:visible}
+#x-sysc{width:min(360px,100%);background:#fff;border-radius:24px;padding:32px 26px 22px;text-align:center;box-shadow:0 30px 70px rgba(0,0,0,.25);transform:translateY(16px) scale(.95);opacity:0;transition:transform .35s cubic-bezier(.2,.9,.3,1.2),opacity .25s}
+#x-sys.on #x-sysc{transform:none;opacity:1}
+.x-sico{position:relative;width:76px;height:76px;border-radius:50%;margin:6px auto 26px;display:grid;place-items:center;background:#fdf3dc;color:#9a6700}
+.x-sico::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid currentColor;opacity:.3;animation:xPu 1.8s ease-out infinite}
+@keyframes xPu{from{transform:scale(.9);opacity:.35}to{transform:scale(1.25);opacity:0}}
+.x-sico svg{width:36px;height:36px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.x-sico .x-chk{width:40px;height:40px}
+.x-rot{animation:xRot 1s linear infinite}
+#x-sys.ok .x-sico{background:#e6f5ed;color:#16794a}
+#x-sys.rt .x-sico{background:var(--blue-s);color:var(--blue)}
+#x-sys.ok .x-sico::after,#x-sys.rt .x-sico::after{animation:none;opacity:0}
+#x-sysT{display:block;font-size:19px;font-weight:700;letter-spacing:-.01em;color:var(--text)}
+#x-sysM{display:block;color:var(--text-dim);font-size:14px;line-height:1.45;margin:8px 0 20px}
+#x-sysR{width:100%;border-radius:12px;padding:13px}
+#x-sysX{margin-top:10px;border:0;background:none;color:var(--text-dim);font-size:13px;padding:6px}
+#x-sys.ok #x-sysR,#x-sys.ok #x-sysX,#x-sys.rt #x-sysR,#x-sys.rt #x-sysX{display:none}
+#x-sys.ok #x-sysM,#x-sys.rt #x-sysM{margin-bottom:6px}
 </style>
 </head>
 <body>
 
 <div id="login-screen">
   <div class="login-wrap">
-    <img id="login-logo" alt="iMotor Care" class="login-brand-logo">
+    <div class="login-unit">
+    <div class="login-head"><img id="login-logo" alt="iMotor Care" class="login-brand-logo"></div>
     <div class="login-card">
       <h1>Bienvenido</h1>
       <p class="sub">Ingresa para continuar.</p>
@@ -750,6 +820,7 @@ html.login-abierto,html.login-abierto body{background:var(--paper)}
       <button type="button" class="btn-primary" id="login-entrar">Entrar</button>
       <div class="login-error" id="login-error"></div>
       <p class="login-hint">Este sistema es de uso interno. Si no tienes la clave, pídesela al administrador.</p>
+    </div>
     </div>
   </div>
 </div>
@@ -3428,8 +3499,9 @@ const mk=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d
 const add=h=>{const e=mk(h);document.body.appendChild(e);return e};
 const appOn=()=>$('app-screen').classList.contains('active');
 
-/* 1. Intro */
-if(!sessionStorage.getItem('imc_clave')){const lg=($('login-logo')||{}).src||'';const it=add('<div id="x-intro"><div class="x-ic"><div class="x-bd"></div><img src="'+lg+'" alt="iMotor Care"><small>sistema de gestión</small></div></div>');const off=()=>{it.classList.add('off');setTimeout(()=>it.remove(),600)};setTimeout(off,2800);it.onclick=off;}
+/* 1. Splash a pantalla completa */
+if(!sessionStorage.getItem('imc_clave')){document.documentElement.classList.add('x-splash');const lg=($('login-logo')||{}).src||'';const it=add('<div id="x-intro"><img src="'+lg+'" alt="iMotor Care"><div class="x-lb"><i></i></div><small>Abriendo iMotor Care…</small></div>');const off=()=>{if(it.classList.contains('off'))return;it.classList.add('off');document.documentElement.classList.remove('x-splash');setTimeout(()=>it.remove(),700)};setTimeout(off,2800);it.onclick=off;}
+add('<div id="x-band"></div>');
 
 /* 2. Onda de espera al entrar */
 const wv=add('<div id="x-wv"><div><div class="x-wvs"><i></i><i style="animation-delay:.1s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.4s"></i><i style="animation-delay:.5s"></i><i style="animation-delay:.6s"></i></div>Preparando tu sistema…</div></div>');
@@ -3444,20 +3516,25 @@ document.querySelectorAll('.nav-item').forEach(a=>{[...a.childNodes].forEach(n=>
 function tick(){const d=new Date();$('x-clk').textContent=d.toLocaleDateString('es-PE',{weekday:'short',day:'numeric',month:'short'})+' · '+d.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}
 tick();setInterval(tick,15000);
 
-/* 5. Tarjeta fusionada: carga → confirmación */
+/* 5. Sistema de estados: INACTIVO → PROCESANDO → ÉXITO / ERROR (atado al proceso real) */
 let okT;const ov=add('<div id="x-okv"><div id="x-okc"></div></div>');const okc=$('x-okc');
 const swap=(q,t)=>{const e=okc.querySelector(q);if(!e)return;e.style.opacity=0;setTimeout(()=>{e.textContent=t;e.style.opacity=1},160)};
 const cerrar=()=>{clearTimeout(okT);ov.classList.remove('on')};
-function flowStart(t){clearTimeout(okT);okc.innerHTML='<div class="x-mk"><div class="x-ld"><i></i>i</div><div class="x-big"></div></div><b id="x-okt">'+t+'</b><span id="x-oks">Un momento</span><div class="x-pbar"><i></i></div>';ov.classList.add('on')}
+function flowStart(t,h){clearTimeout(okT);okc.innerHTML='<div class="x-mk"><div class="x-ld"><i></i>i</div><div class="x-big"></div></div><b id="x-okt">'+t+'</b><span id="x-oks">'+(h||'Un momento')+'</span><div class="x-pbar"><i></i></div>';ov.classList.add('on')}
 function flowOk(t,d){if(!okc.querySelector('.x-mk'))flowStart('');okc.querySelector('.x-mk').classList.add('done');okc.querySelector('.x-big').innerHTML=CHK;swap('#x-okt',t);swap('#x-oks',d||'');okc.querySelector('.x-pbar i').classList.add('run');clearTimeout(okT);okT=setTimeout(cerrar,2200)}
-function flowFail(m){if(!okc.querySelector('.x-mk'))flowStart('');const k=okc.querySelector('.x-mk');k.classList.add('done','err');okc.querySelector('.x-big').innerHTML=XX;swap('#x-okt','No se pudo completar');swap('#x-oks',String(m).slice(0,180));okc.querySelector('.x-pbar').outerHTML='<button type="button" class="btn-sm" id="x-fx" style="margin-top:16px">Entendido</button>';$('x-fx').onclick=e=>{e.stopPropagation();cerrar()};clearTimeout(okT)}
-ov.onclick=cerrar;
-const infoVenta=()=>(($('v-cliente')||{}).value||'').trim()||'Cliente genérico';
-[['confirmar-venta','venta-msg','Guardando venta…',()=>infoVenta()+' · '+$('v-metodopago').value],['cg-guardar','cg-msg','Registrando…',()=>''],['cp-guardar','cp-msg','Registrando…',()=>''],['sc-guardar','sc-msg','Registrando…',()=>''],['cv-guardar','cv-msg','Registrando…',()=>'']].forEach(([b,m,lt,inf])=>{
-  const B=$(b),M=$(m);if(!B||!M)return;let on=false,info='';
-  B.addEventListener('click',()=>{if(!B.disabled&&!B.querySelector('.spinner'))return;on=true;try{info=inf()}catch(e){info=''}flowStart(lt);setTimeout(()=>{if(on){on=false;cerrar()}},90000)});
-  new MutationObserver(()=>{if(!on)return;const t=M.textContent.trim();if(!t)return;on=false;(/(^|\s)ok(\s|$)/.test(M.className)||/^✓/.test(t))?flowOk(t.replace(/^✓\s*/,''),info):flowFail(t)}).observe(M,{attributes:true,childList:true,characterData:true,subtree:true});
-});
+function flowFail(m,t){if(!okc.querySelector('.x-mk'))flowStart('');const k=okc.querySelector('.x-mk');k.classList.add('done','err');okc.querySelector('.x-big').innerHTML=XX;swap('#x-okt',t||'No se pudo completar');swap('#x-oks',String(m).slice(0,320));okc.querySelector('.x-pbar').outerHTML='<button type="button" class="btn-sm" id="x-fx" style="margin-top:16px">Entendido</button>';$('x-fx').onclick=e=>{e.stopPropagation();cerrar()};clearTimeout(okT)}
+ov.onclick=e=>{if(!okc.querySelector('.err')&&PR.act)return;cerrar()};
+const LB={venta:['Guardando venta…','Venta registrada'],compra:['Registrando compra…','Compra registrada'],cotizacion:['Generando cotización…','Cotización lista','Esto puede tardar unos segundos'],cotizacionVenta:['Generando venta…','Venta generada'],editarProducto:['Guardando producto…','Producto actualizado'],crearProducto:['Creando producto…','Producto creado'],editarVenta:['Guardando cambios…','Cambios guardados'],editarCompra:['Guardando cambios…','Cambios guardados'],editarCliente:['Guardando cambios…','Cambios guardados'],editarConversion:['Guardando cambios…','Cambios guardados'],editarTcSunat:['Guardando TC…','TC SUNAT guardado'],eliminarVenta:['Eliminando…','Eliminado'],eliminarCompra:['Eliminando…','Eliminado'],eliminarProducto:['Eliminando…','Eliminado'],anularVenta:['Anulando…','Anulado'],anularCompra:['Anulando…','Anulado'],pagoCompromiso:['Registrando pago…','Pago registrado'],compromiso:['Registrando compromiso…','Compromiso registrado'],movimientoSocio:['Registrando movimiento…','Movimiento registrado'],conversion:['Registrando conversión…','Conversión registrada'],cliente:['Guardando cliente…','Cliente guardado']};
+const CONN=/No se pudo conectar|no es JSON|No se pudo confirmar|Failed to fetch|Load failed|NetworkError/i;
+const PR={act:false,err:null,w:0,g:0,first:null,last:null,t0:0,quiet:null,maxT:null};
+function detalle(l){const b=(l&&l.body)||{},r=(l&&l.res)||{};if(l&&l.acc==='cotizacion')return [r.numeroFormateado,b.cliente].filter(Boolean).join(' · ');if(l&&l.acc==='venta')return [b.cliente||'',b.metodoPago||''].filter(Boolean).join(' · ');return b.nombre||b.descripcion||b.cliente||b.proveedor||''}
+function wBegin(acc){clearTimeout(PR.quiet);if(!PR.act){PR.act=true;PR.err=null;PR.last=null;PR.first=acc;PR.t0=Date.now();const l=LB[acc]||['Procesando…','Listo'];flowStart(l[0],l[2]);PR.maxT=setTimeout(()=>wEnd(),25000)}}
+function arm(){clearTimeout(PR.quiet);if(PR.act&&PR.g===0)PR.quiet=setTimeout(wEnd,550)}
+function wEnd(){if(!PR.act)return;PR.act=false;clearTimeout(PR.maxT);clearTimeout(PR.quiet);const err=PR.err,l=PR.last,acc=PR.first;PR.err=null;
+  const go=()=>{if(err){if(CONN.test(err)){cerrar();netLost(err)}else flowFail(err)}else flowOk((LB[acc]||['','Listo'])[1],detalle(l))};
+  setTimeout(go,Math.max(0,700-(Date.now()-PR.t0)))}
+const oal=window.alert;window.alert=function(m){if(PR.act){PR.err=String(m);return}return oal.apply(window,arguments)};
+const infoVenta=()=>'';
 
 /* 6. Método de pago con dibujos (sincroniza el select original) */
 const sel=$('v-metodopago');
@@ -3526,13 +3603,35 @@ $('x-bell').onclick=e=>{e.stopPropagation();bell();$('x-np').classList.toggle('o
 document.addEventListener('click',e=>{if(!e.target.closest('#x-ub'))$('x-np').classList.remove('on')});
 const sb=$('d-stock-bajo');if(sb)new MutationObserver(bell).observe(sb,{childList:true,subtree:true});bell();
 
-/* 14. Aviso de conexión con Reintentar (envuelve api: el mismo error se vuelve a lanzar, nada cambia en la lógica) */
-const net=add('<div id="x-net"><span id="x-nt"></span><button type="button" class="btn-sm" id="x-nr">Reintentar</button></div>');let off=false;
-function setNet(v,msg){off=v;$('x-nt').textContent=msg||'';net.className=v?'on':''}
-if(typeof api==='function'){const oa=window.api;window.api=async function(){try{const r=await oa.apply(this,arguments);if(off){off=false;net.className='on ok';$('x-nt').textContent='Conexión restablecida';$('x-nr').style.display='none';setTimeout(()=>{net.className='';$('x-nr').style.display=''},1800)}return r}catch(e){if(/No se pudo conectar|no es JSON/.test(e.message||'')){setNet(true,/JSON/.test(e.message)?'El servidor respondió con un error. Tus datos no se perdieron.':'No pudimos conectar con Google Sheets. Tus datos no se perdieron.')}throw e}}}
-$('x-nr').onclick=async()=>{const b=$('x-nr');b.disabled=true;b.textContent='Reconectando…';try{if(typeof refrescarTodo==='function')await refrescarTodo()}catch(e){}b.disabled=false;b.textContent='Reintentar'};
-window.addEventListener('offline',()=>setNet(true,'Sin internet. Tus datos no se perdieron.'));
-window.addEventListener('online',()=>{if(off){net.className='on ok';$('x-nt').textContent='Conexión restablecida';setTimeout(()=>{net.className='';off=false},1800)}});
+/* 14. Estado de conexión (overlay de estado) + envoltorio único de api (el error original se relanza intacto) */
+const WARN='<svg viewBox="0 0 24 24"><path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.5v.01"/></svg>';
+const ROT='<svg class="x-rot" viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9"/></svg>';
+const sy=add('<div id="x-sys"><div id="x-sysc"><div class="x-sico"></div><b id="x-sysT"></b><span id="x-sysM"></span><button type="button" class="btn-primary" id="x-sysR">Reintentar</button><button type="button" id="x-sysX">Cerrar</button></div></div>');
+let off=false,rt=false;
+const setSys=(cls,ico,t,m)=>{sy.className=cls;sy.querySelector('.x-sico').innerHTML=ico;$('x-sysT').textContent=t;$('x-sysM').textContent=m};
+function netLost(err){if(rt)return;off=true;err=String(err||'');
+  if(/No se pudo confirmar/i.test(err))setSys('on',WARN,'Revisa antes de repetir',err.slice(0,360));
+  else if(/no es JSON/i.test(err))setSys('on',WARN,'El servidor no respondió bien','Google respondió con un error. Tus datos no se perdieron; intenta de nuevo en unos segundos.');
+  else if(/sin internet/i.test(err)||!navigator.onLine)setSys('on',WARN,'Sin conexión a internet','Revisa tu red. Cuando vuelva, intentaremos reconectar.');
+  else setSys('on',WARN,'Conexión interrumpida','No podemos comunicarnos con Google Sheets en este momento. Tus datos no se perdieron.');
+  $('x-sysR').style.display=''}
+function netOk(){if(!off)return;off=false;rt=false;setSys('on ok',CHK,'Conexión restablecida','Todo volvió a la normalidad.');setTimeout(()=>{if(!off)sy.className=''},1800)}
+async function reintentar(){if(rt)return;rt=true;setSys('on rt',ROT,'Reconectando…','Comprobando la conexión con Google Sheets.');
+  try{if(typeof refrescarTodo==='function')await refrescarTodo();else await cargarProductos()}catch(e){}
+  await sleep(500);rt=false;if(off&&!sy.classList.contains('ok'))setSys('on',WARN,'Seguimos sin conexión','No pudimos conectar todavía. Intenta de nuevo en unos segundos.')}
+$('x-sysR').onclick=reintentar;$('x-sysX').onclick=()=>{sy.className=''};
+window.addEventListener('offline',()=>netLost('sin internet'));
+window.addEventListener('online',()=>{if(off)reintentar()});
+if(typeof api==='function'){const oa=window.api;window.api=async function(a,p,m,b){
+  const isW=m==='POST'&&b&&b.accion&&b.accion!=='login'&&b.accion!=='estadoOperacion';
+  clearTimeout(PR.quiet);PR.g++;if(isW){PR.w++;wBegin(b.accion)}
+  try{const r=await oa.apply(this,arguments);
+    if(isW){if(!r||!r.ok)PR.err=(r&&r.error)||'La operación no se completó.';else{PR.last={acc:b.accion,body:b,res:r};if(b.accion==='cotizacion')swap('#x-okt','Armando el PDF…')}}
+    if(off)netOk();return r}
+  catch(e){const msg=(e&&e.message)||'';if(isW)PR.err=msg;else if(CONN.test(msg)&&!PR.act)netLost(msg);throw e}
+  finally{PR.g--;if(isW)PR.w--;arm()}}}
+/* botones de actualizar: giran mientras se lee de Google Sheets */
+document.addEventListener('click',e=>{const b=e.target.closest('[id^="btn-refrescar"]');if(!b||b.classList.contains('x-spin'))return;b.classList.add('x-spin');const t0=Date.now(),iv=setInterval(()=>{if(Date.now()-t0>900&&!PR.g||Date.now()-t0>15000){clearInterval(iv);b.classList.remove('x-spin')}},250)});
 
 /* 15. Tipo de cuenta (solo apariencia en esta prueba: la protección real de datos debe venir del .gs) */
 const card=document.querySelector('.login-card'),idf=$('login-id');
