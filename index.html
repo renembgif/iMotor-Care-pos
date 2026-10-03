@@ -1152,6 +1152,13 @@ html[data-theme="dark"] .x-pay3 .pm-ic.pm-tile{background:#fff;padding:2px}
 html[data-theme="dark"] .x-pay3 button.on{box-shadow:0 0 0 2px #00E5FF}
 
 </style>
+<script>
+(function(){
+var SEL='.modal-overlay,.cot-modal-overlay,#x-confirm,[id$="-overlay"]';
+document.addEventListener('click',function(e){var t=e.target;if(t&&t.matches&&t.matches(SEL)&&!t.matches('#x-okv')){e.stopImmediatePropagation();e.preventDefault()}},true);
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.querySelector('.modal-overlay.show,.cot-modal-overlay.show,[id$="-overlay"].show,#x-confirm.on')){e.stopImmediatePropagation();e.preventDefault()}},true);
+})();
+</script>
 </head>
 <body>
 
@@ -3883,8 +3890,8 @@ tick();setInterval(tick,15000);
 let okT;const ov=add('<div id="x-okv"><div id="x-okc"></div></div>');const okc=$('x-okc');
 const swap=(q,t)=>{const e=okc.querySelector(q);if(!e)return;e.style.opacity=0;setTimeout(()=>{e.textContent=t;e.style.opacity=1},160)};
 const cerrar=()=>{clearTimeout(okT);ov.classList.remove('on')};
-const HG='<svg class="hourglass-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 2H18M6 22H18M7 2L11.1 9.16667C11.6 9.96667 11.6 10.9667 11.1 11.7667L7 19M17 2L12.9 9.16667C12.4 9.96667 12.4 10.9667 12.9 11.7667L17 19" stroke="#0d5c63" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 5H16L12 11L8 5Z" fill="#d4a373" opacity="0.85"/><line class="sand-stream" x1="12" y1="11" x2="12" y2="17" stroke="#d4a373" stroke-width="1.2" stroke-dasharray="1 2"/><path class="sand-bottom" d="M8.5 18.5C10 17.5 14 17.5 15.5 18.5L17 19H7L8.5 18.5Z" fill="#d4a373"/></svg>';
-function flowStart(t,h){clearTimeout(okT);okc.innerHTML='<div class="x-mk"><div class="x-ld"><i></i>'+(/conversi/i.test(t)?HG:'i')+'</div><div class="x-big"></div></div><b id="x-okt">'+t+'</b><span id="x-oks">'+(h||'Un momento')+'</span><div class="x-pbar"><i></i></div>';ov.classList.add('on')}
+const HG='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 2H18M6 22H18M7 2L11.1 9.16667C11.6 9.96667 11.6 10.9667 11.1 11.7667L7 19M17 2L12.9 9.16667C12.4 9.96667 12.4 10.9667 12.9 11.7667L17 19" stroke="#0d5c63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 5H16L12 11L8 5Z" fill="#d4a373"/><path d="M8 19H16L12 13L8 19Z" fill="#d4a373"/></svg>';
+function flowStart(t,h){clearTimeout(okT);okc.innerHTML='<div class="x-mk"><div class="x-ld"><i></i>'+HG+'</div><div class="x-big"></div></div><b id="x-okt">'+t+'</b><span id="x-oks">'+(h||'Un momento')+'</span><div class="x-pbar"><i></i></div>';ov.classList.add('on')}
 function flowOk(t,d){if(!okc.querySelector('.x-mk'))flowStart('');okc.querySelector('.x-mk').classList.add('done');okc.querySelector('.x-big').innerHTML=CHK;swap('#x-okt',t);swap('#x-oks',d||'');okc.querySelector('.x-pbar i').classList.add('run');clearTimeout(okT);okT=setTimeout(cerrar,2200)}
 function flowFail(m,t){if(!okc.querySelector('.x-mk'))flowStart('');const k=okc.querySelector('.x-mk');k.classList.add('done','err');okc.querySelector('.x-big').innerHTML=XX;swap('#x-okt',t||'No se pudo completar');swap('#x-oks',String(m).slice(0,320));okc.querySelector('.x-pbar').outerHTML='<button type="button" class="btn-sm" id="x-fx" style="margin-top:16px">Entendido</button>';$('x-fx').onclick=e=>{e.stopPropagation();cerrar()};clearTimeout(okT)}
 ov.onclick=e=>{if(!okc.querySelector('.err')&&PR.act)return;cerrar()};
@@ -4144,6 +4151,7 @@ if(cc){
 })();
 </script>
 <style>
+.cot-tab{width:100%;border-collapse:collapse;font-size:13px}.cot-tab th{text-align:left;padding:9px 8px;font-size:11px;text-transform:uppercase;opacity:.7}.cot-tab td{padding:9px 8px;border-top:1px solid var(--line);vertical-align:top;word-break:break-word}.cot-tab .dsc{max-width:220px;opacity:.85}.cot-tab td:last-child{white-space:nowrap}.cot-tab .det td{padding:0 0 8px}.cl-acc{display:block;width:100%;padding:12px;border:0;border-top:1px solid var(--line);background:transparent;color:inherit;font:inherit;font-weight:600;cursor:pointer}
 .hourglass-icon{width:20px;height:20px;display:block}
 .sand-stream{animation:sandFall .9s linear infinite}
 @keyframes sandFall{to{stroke-dashoffset:-3}}
@@ -4156,8 +4164,7 @@ if(cc){
 .inv-chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
 .inv-chips button{padding:6px 12px;border:1.5px solid var(--line);border-radius:999px;background:transparent;color:var(--text);font:inherit;font-size:12.5px;cursor:pointer}
 .inv-chips button.on{border-color:#00b8cc;background:rgba(0,229,255,.14);font-weight:600}
-.inv-pager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0 18px;font-size:12.5px}
-.inv-pager button:disabled{opacity:.4;cursor:default}
+.inv-table thead th{position:sticky;top:0;z-index:2;background:var(--card)}
 </style>
 <script>
 (function(){
@@ -4192,27 +4199,29 @@ $('cv-guardar').closest('.panel-body').addEventListener('click',e=>{
   if(bad.length){e.stopPropagation();const m=$('cv-msg');m.textContent='✗ Elige un producto registrado de la lista (código no encontrado).';m.className='sale-msg err'}},true);
 
 /* ---- MÓDULO 2: inventario con chips, búsqueda con debounce y paginación ---- */
-const INV={chip:'todos',page:1,per:15};
-const old=$('inv-search'),inp=old.cloneNode(true);old.replaceWith(inp);   // quita el listener inmediato original
+const INV={chip:'todos',shown:40,step:40};
+const old=$('inv-search'),inp=old.cloneNode(true);old.replaceWith(inp);
 inp.placeholder='Buscar por código o nombre…';
 inp.closest('.search-box').insertAdjacentHTML('afterend','<div class="inv-chips" id="inv-chips"></div>');
-$('inv-tbody').closest('.panel').insertAdjacentHTML('afterend','<div class="inv-pager" id="inv-pager"></div>');
+const pp=$('inv-tbody').closest('.panel-body');pp.style.cssText+=';padding:0;max-height:68vh;overflow:auto;-webkit-overflow-scrolling:touch';
 const CH=[['todos','Todos'],['bajo','Stock Bajo'],['agotado','Agotados'],['nuevo','Recién Agregados']];
-const nuevos=()=>new Set(PRODUCTOS.slice().sort((a,b)=>b.fila-a.fila).slice(0,20).map(p=>p.fila));
-function lista(){const q=inp.value.trim(),nv=INV.chip==='nuevo'?nuevos():null;
-  return PRODUCTOS.filter(p=>(!q||hit(p,q))&&(INV.chip==='todos'||(INV.chip==='bajo'&&p.stockActual>0&&p.stockActual<=3)||(INV.chip==='agotado'&&p.stockActual<=0)||(nv&&nv.has(p.fila))))}
-function draw2(){
-  const L=lista(),pages=Math.max(1,Math.ceil(L.length/INV.per));INV.page=Math.min(INV.page,pages);
-  const cont=$('inv-tbody'),rows=L.slice((INV.page-1)*INV.per,INV.page*INV.per);
-  cont.innerHTML=rows.length?rows.map(p=>`<tr><td class="mono">${esc(p.codigo)}</td><td>${esc(p.nombre)}</td><td>${fmtQty(p.stockActual)}${p.stockActual<=3?'<span class="badge-low">BAJO</span>':''}</td><td class="mono">${fmt(p.precioVenta)}</td><td><div class="inv-acciones"><button class="btn-sm" data-editp="${p.fila}">Editar</button><button class="btn-sm-danger" data-delp="${p.fila}">Eliminar</button></div></td></tr>`).join(''):'<tr><td colspan="5" class="empty-note">Sin productos.</td></tr>';
-  cont.querySelectorAll('[data-editp]').forEach(b=>b.addEventListener('click',()=>abrirModalProducto(PRODUCTOS.find(p=>p.fila==b.dataset.editp))));
-  cont.querySelectorAll('[data-delp]').forEach(b=>b.addEventListener('click',()=>eliminarRegistro('producto',Number(b.dataset.delp),PRODUCTOS.find(p=>p.fila==b.dataset.delp).huella)));
-  $('inv-chips').innerHTML=CH.map(c=>'<button type="button" data-c="'+c[0]+'" class="'+(INV.chip===c[0]?'on':'')+'">'+c[1]+'</button>').join('');
-  $('inv-pager').innerHTML='<button type="button" class="btn-sm" id="inv-prev"'+(INV.page<=1?' disabled':'')+'>‹ Anterior</button><span>Página '+INV.page+' de '+pages+' · '+L.length+' productos</span><button type="button" class="btn-sm" id="inv-next"'+(INV.page>=pages?' disabled':'')+'>Siguiente ›</button>';
-  $('inv-prev').onclick=()=>{INV.page--;draw2()};$('inv-next').onclick=()=>{INV.page++;draw2()}}
+function lista(){const q=inp.value.trim();
+  let L=PRODUCTOS.filter(p=>(!q||hit(p,q))&&(INV.chip==='todos'||INV.chip==='nuevo'||(INV.chip==='bajo'&&p.stockActual>0&&p.stockActual<=3)||(INV.chip==='agotado'&&p.stockActual<=0)));
+  if(INV.chip==='nuevo')L=L.slice().sort((a,b)=>(b.fila-a.fila));   // más nuevo primero (P150, P149…)
+  return L}
+let LST=[];
+const rowH=p=>`<tr><td class="mono">${esc(p.codigo)}</td><td>${esc(p.nombre)}</td><td>${fmtQty(p.stockActual)}${p.stockActual<=3?'<span class="badge-low">BAJO</span>':''}</td><td class="mono">${fmt(p.precioVenta)}</td><td><div class="inv-acciones"><button class="btn-sm" data-editp="${p.fila}">Editar</button><button class="btn-sm-danger" data-delp="${p.fila}">Eliminar</button></div></td></tr>`;
+function paint(){const cont=$('inv-tbody');
+  cont.innerHTML=LST.length?LST.slice(0,INV.shown).map(rowH).join(''):'<tr><td colspan="5" class="empty-note">Sin productos.</td></tr>';
+  $('inv-chips').innerHTML=CH.map(c=>'<button type="button" data-c="'+c[0]+'" class="'+(INV.chip===c[0]?'on':'')+'">'+c[1]+'</button>').join('')+'<span style="margin-left:auto;font-size:12px;opacity:.7;align-self:center">'+LST.length+' productos</span>'}
+function draw2(){LST=lista();INV.shown=INV.step;pp.scrollTop=0;paint()}
+$('inv-tbody').addEventListener('click',e=>{const be=e.target.closest('[data-editp]'),bd=e.target.closest('[data-delp]');
+  if(be)abrirModalProducto(PRODUCTOS.find(p=>p.fila==be.dataset.editp));
+  if(bd)eliminarRegistro('producto',Number(bd.dataset.delp),PRODUCTOS.find(p=>p.fila==bd.dataset.delp).huella)});
+pp.addEventListener('scroll',()=>{if(INV.shown<LST.length&&pp.scrollTop+pp.clientHeight>=pp.scrollHeight-160){INV.shown+=INV.step;const y=pp.scrollTop;paint();pp.scrollTop=y}});
 window.renderInventario=function(){draw2()};
-$('inv-chips').addEventListener('click',e=>{const b=e.target.closest('button');if(b){INV.chip=b.dataset.c;INV.page=1;draw2()}});
-let dbT;inp.addEventListener('input',()=>{clearTimeout(dbT);dbT=setTimeout(()=>{INV.page=1;draw2()},300)});
+$('inv-chips').addEventListener('click',e=>{const b=e.target.closest('button');if(b){INV.chip=b.dataset.c;draw2()}});
+let dbT;inp.addEventListener('input',()=>{clearTimeout(dbT);dbT=setTimeout(draw2,300)});
 if(window.PRODUCTOS&&PRODUCTOS.length)draw2();
 
 /* ---- MÓDULO 4: Editar producto sin pérdida de datos ---- */
@@ -4223,8 +4232,75 @@ window.cerrarEditProducto=async function(){
   if(esProd()&&ser()!==snap){const ok=await window.xAsk('¿Salir sin guardar?','','Tienes cambios sin guardar en este producto. Si sales se perderán.','Salir sin guardar');if(!ok)return}
   ov.classList.remove('show')};
 cancel.addEventListener('click',()=>window.cerrarEditProducto());
-new MutationObserver(()=>{if(!ov.classList.contains('show'))return;const p=esProd();cancel.style.display=p?'block':'none';if(p)snap=ser()}).observe(ov,{attributes:true,attributeFilter:['class']});
+new MutationObserver(()=>{if(!ov.classList.contains('show'))return;const p=esProd();cancel.style.display='block';if(p)snap=ser()}).observe(ov,{attributes:true,attributeFilter:['class']});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ov.classList.contains('show')&&esProd())e.stopImmediatePropagation()},true);
+})();
+
+/* ---- MÓDULO 5: Cotizaciones y Clientes en una sola pantalla ---- */
+(function(){
+const $=id=>document.getElementById(id),nrm=t=>String(t||'').toLowerCase();
+const vc=$('view-clientes'),vq=$('view-cotizaciones');
+const pServ=vc.querySelectorAll(':scope > .panel')[0],pRec=vc.querySelectorAll(':scope > .panel')[1],pBus=vc.querySelectorAll(':scope > .panel')[2];
+const pHist=$('cot-historial').closest('.panel');
+vc.querySelector('.topline h2').textContent='Cotizaciones y Clientes';
+// 1 buscador global
+pBus.querySelector('.panel-head').style.display='none';
+$('cl-buscar-placa').placeholder='Buscar por Placa, Nombre de Cliente o Celular...';
+$('cl-historial').style.display='none';
+vc.appendChild(pBus);
+// 2 formulario manual
+vc.appendChild(pServ);
+pRec.style.display='none'; vc.appendChild(pRec);
+// 3 historial de cotizaciones recientes
+pHist.querySelector('.panel-head').innerHTML='Historial de cotizaciones recientes <button type="button" class="btn-mini" id="cq-nueva" style="float:right">+ Nueva cotización</button>';
+vc.appendChild(pHist);
+// 4 lista de clientes (acordeón)
+const pCli=document.createElement('div');pCli.className='panel';
+pCli.innerHTML='<div class="panel-head">Clientes registrados</div><div class="panel-body" style="padding:0" id="cli-list"><div class="empty-note">Cargando…</div></div><button type="button" class="cl-acc" id="cli-acc" style="display:none"></button>';
+vc.appendChild(pCli);
+// navegación: Cotizaciones y Clientes unificados; el armado de la cotización queda accesible con "+ Nueva cotización"
+let builder=false;const g0=window.goView;
+window.goView=function(n){if(n==='cotizaciones'&&!builder)n='clientes';g0(n);if(n==='clientes'){window.cargarHistorialCotizaciones()}};
+$('cq-nueva').addEventListener('click',()=>{builder=true;goView('cotizaciones');builder=false;$('btn-nueva-cot').click()});
+vq.querySelector('.topline h2').textContent='Nueva cotización';
+const back=document.createElement('button');back.type='button';back.className='btn-sm';back.textContent='← Volver a Cotizaciones y Clientes';back.style.margin='0 0 10px';back.onclick=()=>goView('clientes');
+vq.insertBefore(back,vq.firstChild);
+document.querySelectorAll('[data-view="clientes"]').forEach(e=>e.style.display='none');
+document.querySelectorAll('.nav-item[data-view="cotizaciones"]').forEach(a=>{try{const t=a.querySelector('.nv-t')||[...a.childNodes].reverse().find(n=>n.nodeType===3&&n.textContent.trim());if(t)t.textContent='Cotizaciones y Clientes'}catch(_){}});
+// tabla de historial
+let Q='';
+const desc=c=>(c.items&&c.items.length?c.items.map(i=>i.nombre).join(', '):(c.descripcion||'—'));
+const hay=(...v)=>nrm(v.join(' ')).includes(nrm(Q));
+window.cargarHistorialCotizaciones=async function(){
+  const cont=$('cot-historial'),res=$('cot-resumen');
+  try{
+    const [data]=await Promise.all([api('cotizaciones',FILTRO_COT.params()),cargarClientesCache()]);
+    if(!data.ok)throw new Error(data.error);
+    mezclarCotizaciones(data.cotizaciones);
+    COT_LISTA=data.cotizaciones.slice().sort((a,b)=>(new Date(b.fecha)-new Date(a.fecha))||(b.numero-a.numero));
+    paintCot();paintCli();
+  }catch(e){cont.innerHTML='<div class="empty-note">No se pudo cargar el historial: '+esc(e.message)+'</div>'}};
+function paintCot(){
+  const cont=$('cot-historial'),L=COT_LISTA.filter(c=>!Q||hay(c.numeroFormateado,c.cliente,c.clienteLimpio,c.placa,c.celular,c.telefono));
+  $('cot-resumen').textContent=L.length?L.length+' cotización(es)':'';
+  cont.innerHTML=L.length?'<table class="cot-tab"><thead><tr><th>Fecha</th><th>Placa / Nombre</th><th>Descripción</th><th>Monto (S/)</th><th></th></tr></thead><tbody>'+L.map(c=>'<tr><td>'+new Date(c.fecha).toLocaleDateString('es-PE')+'</td><td><b>'+esc(c.placa||'S/placa')+'</b><br><small>'+esc(c.clienteLimpio||c.cliente||'')+'</small></td><td class="dsc">'+esc(desc(c))+'</td><td>'+fmt(c.total)+'</td><td><button type="button" class="btn-mini" data-u="'+esc(String(c.numero))+'">Usar</button> <button type="button" class="btn-mini" data-v="'+esc(String(c.numero))+'">Ver</button></td></tr><tr class="det" style="display:none"><td colspan="5">'+renderFilaCotizacion(c)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty-note">Sin cotizaciones.</div>';
+  cont.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{prellenarServicioDesdeCotizacion(b.dataset.u);pServ.scrollIntoView({behavior:'smooth'})});
+  cont.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{const d=b.closest('tr').nextElementSibling;const on=d.style.display==='none';d.style.display=on?'':'none';if(on&&!d.dataset.b){d.dataset.b=1;enlazarAccionesCotizacion(d)}})}
+// lista de clientes
+let ALL=false;
+function paintCli(){
+  const list=$('cli-list'),M=new Map();
+  for(let i=CLIENTES_CACHE.length-1;i>=0;i--){const r=CLIENTES_CACHE[i],k=nrm(r.nombre).trim();if(!k)continue;
+    const g=M.get(k)||{r:r,placas:new Set(),cel:''};if(r.placa)g.placas.add(r.placa);g.cel=g.cel||r.celular||r.telefono||'';M.set(k,g)}
+  let L=[...M.values()].filter(g=>!Q||hay(g.r.nombre,[...g.placas].join(' '),g.cel));
+  const full=ALL||!!Q,show=full?L:L.slice(0,5);
+  list.innerHTML=show.length?show.map((g,i)=>'<div class="venta-row"><div><div class="who">'+esc(g.r.nombre)+'</div><div class="when">'+esc([...g.placas].join(' · ')||'S/placa')+(g.cel?' · '+esc(g.cel):'')+'</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn-mini" data-e="'+i+'">Editar</button><button type="button" class="btn-mini" data-n="'+i+'">Nueva cotización</button></div></div>').join(''):'<div class="empty-note">Sin clientes.</div>';
+  list.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>abrirModalCliente(show[+b.dataset.e].r));
+  list.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{const g=show[+b.dataset.n];builder=true;goView('cotizaciones');builder=false;$('btn-nueva-cot').click();$('cot-cliente').value=g.r.nombre});
+  const acc=$('cli-acc');acc.style.display=(!Q&&L.length>5)?'block':'none';acc.textContent=ALL?'▲ Mostrar menos':'▼ Mostrar todos los clientes ('+L.length+')'}
+$('cli-acc').onclick=()=>{ALL=!ALL;paintCli()};
+// buscador global: filtra cotizaciones y clientes en vivo; los resultados con sticker/editar aparecen debajo
+$('cl-buscar-placa').addEventListener('input',e=>{Q=e.target.value.trim();$('cl-historial').style.display=Q?'':'none';paintCot();paintCli()});
 })();
 </script>
 
